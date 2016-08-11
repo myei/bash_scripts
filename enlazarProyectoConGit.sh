@@ -57,7 +57,11 @@ printf "${GREEN}-- Listo! Ya tienes acceso sin autenticación al Ranchito's Serv
 
 ssh -t -t root@190.121.226.235 -p 2224 "
 	cd /home/git
-	mkdir '$repository.git'
+
+	if [ ! -d /home/git/$repository.git ]; then
+		mkdir '$repository.git'
+	fi	
+
 	cd '$repository.git'
 	git --bare init
 	git config core.sharedRepository true
