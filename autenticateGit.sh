@@ -43,6 +43,8 @@ fi
 
 cp LB-PMO.pem /home/$user/certs/
 chmod 600 /home/$user/certs/LB-PMO.pem
+chown -R $user:users /home/$user/certs
+
 echo -e "\nIdentityFile /home/$user/certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
 printf "${CYAN} -- Certificado registrado satisfactoriamente --${NC}\n"
