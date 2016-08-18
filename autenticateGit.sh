@@ -29,7 +29,7 @@ fi
 printf "${CYAN} -- Ingrese su usuario de linux: --${NC}\n"
 read user
 if [ ! -d /home/$user ]; then
-	printf "${RED} -- ERROR: ese no es tu usuario, por favor ingresa el correcto --${NC}\n"
+	printf "${RED} -- ERROR: Ese no es tu usuario, por favor ingresa el correcto --${NC}\n"
 	exit 1
 fi
 

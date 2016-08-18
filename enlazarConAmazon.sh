@@ -6,14 +6,14 @@
 #
 # Este script permite:
 #
-# - Generar keys rsa y autoconexion con el servidor
-# 	* 190.121.226.235
+# - Crear repositorio Git (si no existe) en el servidor 
+# 	permitiendo el uso compartido
 #
-# - Crear repositorio Git en el servidor permitiendo el uso
-# 	compartido
-#
-# - Enlazar el proyecto con el repositorio creado y sincronizar 
+# - Enlazar el proyecto con el repositorio y sincronizar 
 # 	el estado del proyecto automáticamente al servidor
+#
+#	NOTA: Este script debe ser ejecutado desde la ruta del 
+#		  proyecto que se quiere enlazar con el AWS
 #
 ##############################################################
 
