@@ -8,7 +8,7 @@
 #
 # - Registrar el certificado de conexión con Amazon para 
 # 	poder conectarse vía ssh al servidor sin necesidad de
-#	autenticación.
+#	autenticación. (Solo se ejecuta una vez)
 #
 #	NOTA: Este script debe ser ejecutado como -- root -- 
 #		  desde la misma ruta donde se encuentra el  
@@ -43,7 +43,7 @@ fi
 
 cp LB-PMO.pem /home/$user/certs/
 chmod 600 /home/$user/certs/LB-PMO.pem
-chown -R $user:users /home/$user/certs
+chown -R $user:$user /home/$user/certs
 
 echo -e "\nIdentityFile /home/$user/certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
