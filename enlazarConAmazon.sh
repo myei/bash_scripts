@@ -66,10 +66,11 @@ git init
 printf "${BLUE}-- Agregando archivos... --${NC}\n"
 git add *
 printf "${BLUE}-- Creando el commit... --${NC}\n"
-git commit -m "INITIAL COMMIT TO RANCHITO'S SERVER"
-git remote add ranchito "git+ssh://$AMAZON/home/git/$repository.git"
-printf "${BLUE}-- Cargando el estado del proyecto al: Ranchito's Server --${NC}\n"
-git push ranchito master
+git commit -m "INITIAL COMMIT TO AWS'S SERVER"
+git remote add aws "git+ssh://$AMAZON/home/git/$repository.git"
+printf "${BLUE}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n"
+git push aws master
 printf "${GREEN}-- Listo, ahora puedes seguir trabajando en tu proyecto... --${NC}\n"
+printf "${CYAN}-- NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)... --${NC}\n"
 
 exit

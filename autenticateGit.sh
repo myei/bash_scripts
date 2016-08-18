@@ -8,11 +8,12 @@
 #
 # - Registrar el certificado de conexión con Amazon para 
 # 	poder conectarse vía ssh al servidor sin necesidad de
-#	autenticación
+#	autenticación.
 #
-#	NOTA: Este script debe ser ejecutado desde la misma ruta
-#		  donde se encuentra el certificado LB-PMO.pem para 
-#		  su correcto funcionamiento
+#	NOTA: Este script debe ser ejecutado como -- root -- 
+#		  desde la misma ruta donde se encuentra el  
+#		  certificado -- LB-PMO.pem -- para su correcto 
+#		  funcionamiento.
 #
 ##############################################################
 
@@ -22,20 +23,27 @@ NC='\033[0m'
 
 if [ ! -f LB-PMO.pem ]; then
 	printf "${RED} -- ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem --${NC}\n"
-	exit 1;
+	exit 1
 fi
 
-if [ ! -d /etc/ssh/certs ]; then
-	mkdir /etc/ssh/certs
+printf "${CYAN} -- Ingrese su usuario de linux: --${NC}\n"
+read user
+if [ ! -d /home/$user ]; then
+	printf "${RED} -- ERROR: ese no es tu usuario, por favor ingresa el correcto --${NC}\n"
+	exit 1
+fi
+
+if [ ! -d /home/$user/certs ]; then
+	mkdir /home/$user/certs
 fi
 
 if [ ! -f /etc/ssh/ssh_config ]; then
 	touch /etc/ssh/ssh_config
 fi
 
-cp LB-PMO.pem /etc/ssh/certs/
-chmod 600 /etc/ssh/certs/LB-PMO.pem
-echo -e "\nIdentityFile /etc/ssh/certs/LB-PMO.pem" >> /etc/ssh/ssh_config
+cp LB-PMO.pem /home/$user/certs/
+chmod 600 /home/$user/certs/LB-PMO.pem
+echo -e "\nIdentityFile /home/$user/certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
 printf "${CYAN} -- Certificado registrado satisfactoriamente --${NC}\n"
 exit
