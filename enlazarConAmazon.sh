@@ -67,7 +67,7 @@ printf "${BLUE}-- Agregando archivos... --${NC}\n"
 git add *
 printf "${BLUE}-- Creando el commit... --${NC}\n"
 git commit -m "INITIAL COMMIT TO AWS'S SERVER"
-git remote add aws "git+ssh://$AMAZON/home/git/$repository.git"
+git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository.git"
 printf "${BLUE}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n"
 git push aws master
 printf "${GREEN}-- Listo, ahora puedes seguir trabajando en tu proyecto... --${NC}\n"
