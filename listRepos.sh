@@ -15,7 +15,7 @@ cont=1
 for item in ${array[*]}
 do
 	printf "[$cont] %s\n" $item
-	let cont+1
+	let cont+=1
 done
 
 printf "${BLUE}\n---------------------------------------------\n"

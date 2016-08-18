@@ -28,13 +28,52 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 AMAZON='ubuntu@54.204.107.45'
+repoSelected=""
+
+##############################################################
+#						M E N Ú
+##############################################################
+
+printf "Que acción desea realizar? \n\n"
+printf "[1] Crear repositorio y enlazar \n"
+printf "[2] Enlazar a un repositorio existente \n"
+
+read option
+if [ "$option" = "2" ]; then
+	printf "${BLUE}\n---------------------------------------------\n\n${CYAN}"
+
+	array=($(ssh $AMAZON ls /home/ubuntu/git))
+	cont=1
+	for item in ${array[*]}
+	do
+		printf "[$cont] %s\n" $item
+		let cont+=1
+	done
+
+	printf "Introduzca el repositorio a enlazar\n"
+	read repoSelec
+
+	if [ "$repoSelec" = "" ]; then 
+		printf "${RED}!--- ERROR: Debe seleccionar un repositorio... ---!${NC}\n"
+    	exit 1
+	fi
+
+   	repository=$repoSelec
+else
+	
+fi
+
+printf "${BLUE}\n---------------------------------------------\n"
+printf "${NC}\n"
 
 ##############################################################
 #		N O M B R E   D E L   R E P O S I T O R I O
 ##############################################################
 
-printf "${CYAN}-- Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
-read repository 
+if [ "$repoSelected" = ""]; then
+	printf "${CYAN}-- Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
+	read repository
+fi 
 
 if [ "$repository" = "" ]; then
 	printf "${RED}!--- ERROR: Debe ingresar el nombre del repositorio... ---!${NC}\n"
