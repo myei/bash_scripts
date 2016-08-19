@@ -29,6 +29,7 @@ NC='\033[0m'
 
 AMAZON='ubuntu@54.204.107.45'
 repoSelected=""
+isNumber="^-?[0-9]+([.][0-9]+)?$"
 
 ##############################################################
 #						M E N Ú
@@ -40,76 +41,83 @@ printf "[2] Enlazar a un repositorio existente \n"
 
 read option
 if [ "$option" = "2" ]; then
-	printf "${BLUE}\n---------------------------------------------\n\n${CYAN}"
+	printf "${NC}\nBuscando repositorios...\n\n${NC}"
 
 	array=($(ssh $AMAZON ls /home/ubuntu/git))
-	cont=1
+
+	printf "${GREEN}\n---------------------------------------------\n\n${NC}"
+	cont=0
 	for item in ${array[*]}
 	do
 		printf "[$cont] %s\n" $item
 		let cont+=1
 	done
 
-	printf "Introduzca el repositorio a enlazar\n"
+	printf "${GREEN}\n---------------------------------------------\n\n${NC}"
+
+	printf "\nIntroduzca el repositorio a enlazar\n"
 	read repoSelec
 
-	if [ "$repoSelec" = "" ]; then 
+    if [[ $repoSelec > ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
 		printf "${RED}!--- ERROR: Debe seleccionar un repositorio... ---!${NC}\n"
-    	exit 1
+		exit 1
 	fi
 
-   	repository=$repoSelec
-else
-	
-fi
+   	repository=${array[$repoSelec]}
 
-printf "${BLUE}\n---------------------------------------------\n"
-printf "${NC}\n"
+elif [ "$option" != "1" ]; then
+	printf "\n${RED}!--- ERROR: Debe seleccionar una opción... ---!${NC}\n"
+	exit 1
+fi
 
 ##############################################################
 #		N O M B R E   D E L   R E P O S I T O R I O
 ##############################################################
 
-if [ "$repoSelected" = ""]; then
-	printf "${CYAN}-- Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
-	read repository
+if [[ $repository = "" ]]; then
+	printf "\n${CYAN}-- Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
+	read newRepo
+	repository=$newRepo".git"
 fi 
 
 if [ "$repository" = "" ]; then
-	printf "${RED}!--- ERROR: Debe ingresar el nombre del repositorio... ---!${NC}\n"
+	printf "\n${RED}!--- ERROR: Debe ingresar el nombre del repositorio... ---!${NC}\n"
     exit 1
 fi
 
 ##############################################################
 #		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
 ##############################################################
+if [[ $option = "1" ]]; then
+	printf "\n\n${NC}Creando repositorio remoto...${NC}\n\n"
 
-ssh -t -t $AMAZON "
-	if [ ! -d /home/ubuntu/git/$repository.git ]; then
-		cd /home/ubuntu/git
-		mkdir '$repository.git'
+	ssh -t -t $AMAZON "
+		if [ ! -d /home/ubuntu/git/$repository ]; then
+			cd /home/ubuntu/git
+			mkdir '$repository'
 
-		cd '$repository.git'
-		git --bare init
-		git config core.sharedRepository true
-		printf '${GREEN}-- EXITO: Repositorio creado!... --${NC}\n'
-	fi	
-"
+			cd '$repository'
+			git --bare init
+			git config core.sharedRepository true
+			printf '\n${GREEN}-- EXITO: Repositorio creado!... --${NC}\n\n'
+		fi	
+	"
+fi
 
 ##############################################################
 #		C O N F I G U R A C I Ó N   D E L   C L I E N T E
 ##############################################################
 
-printf "${BLUE}-- Creando repositorio local si no estaba creado... --${NC}\n"
+printf "\n${BLUE}-- Creando repositorio local si no estaba creado... --${NC}\n\n"
 git init
-printf "${BLUE}-- Agregando archivos... --${NC}\n"
+printf "\n${BLUE}-- Agregando archivos... --${NC}\n\n"
 git add *
-printf "${BLUE}-- Creando el commit... --${NC}\n"
+printf "\n${BLUE}-- Creando el commit... --${NC}\n\n"
 git commit -m "INITIAL COMMIT TO AWS'S SERVER"
-git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository.git"
-printf "${BLUE}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n"
+git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
+printf "\n${BLUE}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n\n"
 git push aws master
-printf "${GREEN}-- Listo, ahora puedes seguir trabajando en tu proyecto... --${NC}\n"
-printf "${CYAN}-- NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)... --${NC}\n"
+printf "\n${GREEN}-- Listo, ahora puedes seguir trabajando en tu proyecto... --${NC}\n\n"
+printf "\n${CYAN}-- NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)... --${NC}\n\n"
 
 exit
