@@ -57,7 +57,18 @@ read option
 #				A U T E N T I C A C I Ó N
 ##############################################################
 
-if [[ $option = "1" ]]; then
+validateCertificate() {
+	printf "\n\n${CYAN} Validando certificados...${NC}\n\n"
+	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) = "" ]]; then
+		printf "${RED} -- ERROR: No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente --${NC}\n"
+		exit 1
+	fi
+}
+
+if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
+	printf "\n${RED}!--- ERROR: Debe seleccionar una opción... ---!${NC}\n"
+	exit 1
+elif [[ $option = "1" ]]; then
 
 	##############################################################
 	#		V A L I D A C I O N E S   G E N E R A L E S
@@ -102,7 +113,7 @@ if [[ $option = "1" ]]; then
 	exit
 
 elif [[ $option = "3" || $option = "4"  ]]; then
-
+	validateCertificate
 	##############################################################
 	#	  L I S T A D O   D E   R E P O S I T O R I O S
 	##############################################################
@@ -128,10 +139,6 @@ elif [[ $option = "3" || $option = "4"  ]]; then
 	fi
 
    	repository=${array[$repoSelec]}
-
-elif [[ $option != "1" ]]; then
-	printf "\n${RED}!--- ERROR: Debe seleccionar una opción... ---!${NC}\n"
-	exit 1
 fi
 
 ##############################################################
@@ -139,6 +146,7 @@ fi
 ##############################################################
 
 if [[ $repository = "" ]]; then
+	validateCertificate
 	printf "\n${CYAN}-- Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
 	read newRepo
 	if [ $newRepo = "" ]; then
@@ -152,7 +160,7 @@ fi
 #		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
 ##############################################################
 if [[ $option = "2" ]]; then
-	printf "\n\n${NC} Creando repositorio remoto...${NC}\n\n"
+	printf "\n\n${CYAN} Creando repositorio remoto...${NC}\n\n"
 
 	ssh -t -t $AMAZON "
 		if [ ! -d /home/ubuntu/git/$repository ]; then
@@ -172,17 +180,17 @@ fi
 ##############################################################
 
 if [[ $option = "2" || $option = "3" ]]; then
-	printf "\n${BLUE}-- Creando repositorio local si no estaba creado... --${NC}\n\n"
+	printf "\n${CYAN}-- Creando repositorio local si no estaba creado... --${NC}\n\n"
 	git init
-	printf "\n${BLUE}-- Agregando archivos... --${NC}\n\n"
+	printf "\n${CYAN}-- Agregando archivos... --${NC}\n\n"
 	git add *
-	printf "\n${BLUE}-- Creando el commit... --${NC}\n\n"
+	printf "\n${CYAN}-- Creando el commit... --${NC}\n\n"
 	git commit -m "INITIAL COMMIT TO AWS'S SERVER"
 	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
-	printf "\n${BLUE}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n\n"
+	printf "\n${CYAN}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n\n"
 	git push aws master
 else
-	printf "\n${BLUE}-- Clonando repositorio --${NC}\n\n"
+	printf "\n${CYAN}-- Clonando repositorio --${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
 	cd ${repository:0:-4}
 	git remote rename origin aws

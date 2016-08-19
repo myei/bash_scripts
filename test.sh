@@ -1,10 +1,7 @@
 #!/bin/bash
 
-validate_number="^-?[0-9]+([.][0-9]+)?$"
-read a 
-echo ${a:0:-3}
-# if [[ ($a =~ $validate_number) && $a > "2" ]]; then
-# 	echo "si"
-# else
-# 	echo "no"
-# fi
+if [[ $(grep -lir "IdentityFile /home/mgil/certs/LB-PMsO.pem" /etc/ssh/ssh_config) = "" ]]; then
+	echo "si"
+else
+	echo "no"
+fi
