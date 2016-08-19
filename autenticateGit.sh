@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ##############################################################
 #
 # 					Creado por: Manuel Gil
@@ -28,9 +27,7 @@ NC='\033[0m'
 if [ $EUID -ne 0 ]; then
 	printf "${RED} -- ERROR: Debes ejecutar este script como root --${NC}\n"
 	exit 1
-fi
-
-if [ ! -f LB-PMO.pem ]; then
+elif [ ! -f LB-PMO.pem ]; then
 	printf "${RED} -- ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem --${NC}\n"
 	exit 1
 fi
@@ -60,5 +57,6 @@ chown -R $user:$user /home/$user/.certs
 
 echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
-printf "${CYAN} -- Certificado registrado satisfactoriamente --${NC}\n"
+printf "\n${CYAN} -- Certificado registrado satisfactoriamente --${NC}\n\n"
+
 exit
