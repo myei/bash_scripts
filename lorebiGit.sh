@@ -149,7 +149,7 @@ if [[ $repository = "" ]]; then
 	validateCertificate
 	printf "\n${CYAN}-- Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
 	read newRepo
-	if [ $newRepo = "" ]; then
+	if [[ $newRepo = "" ]]; then
 		printf "\n${RED}!--- ERROR: Debe ingresar el nombre del repositorio... ---!${NC}\n"
 	    exit 1
 	fi
