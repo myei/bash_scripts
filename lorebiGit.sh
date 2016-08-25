@@ -186,6 +186,7 @@ if [[ $option = "2" || $option = "3" ]]; then
 	git add *
 	printf "\n${CYAN}-- Creando el commit... --${NC}\n\n"
 	git commit -m "INITIAL COMMIT TO AWS'S SERVER"
+	git remote remove aws
 	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
 	printf "\n${CYAN}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n\n"
 	git push aws master
