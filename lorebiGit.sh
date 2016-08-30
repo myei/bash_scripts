@@ -171,6 +171,8 @@ if [[ $option = "2" ]]; then
 			git --bare init
 			git config core.sharedRepository true
 			printf '\n${GREEN}-- EXITO: Repositorio creado!... --${NC}\n\n'
+		else
+			printf '\n${RED}!--- ERROR: Ese nombre de repositorio ya esta utilizado... ---!${NC}\n'
 		fi	
 	"
 fi
