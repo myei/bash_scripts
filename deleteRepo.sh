@@ -48,5 +48,5 @@ ssh -t -t $AMAZON "
 		sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
 	fi	
 "
-printf "\n${GREEN}!--- ERROR: Repositorio eliminado... ---!${NC}\n"
+printf "\n${GREEN}Repositorio eliminado... ${NC}\n"
 exit
