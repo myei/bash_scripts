@@ -185,6 +185,7 @@ fi
 
 if [[ $option = "2" || $option = "3" ]]; then
 	if [[ $repoExists = "t" ]]; then
+		printf '\n${RED}!--- ERROR: BANDERA... ---!${NC}\n'
 		exit 1
 	fi
 	printf "\n${CYAN}-- Creando repositorio local si no estaba creado... --${NC}\n\n"
