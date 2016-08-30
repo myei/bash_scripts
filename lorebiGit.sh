@@ -174,7 +174,7 @@ if [[ $option = "2" ]]; then
 			printf '\n${GREEN}-- EXITO: Repositorio creado!... --${NC}\n\n'
 		else
 			printf '\n${RED}!--- ERROR: Ese nombre de repositorio ya esta utilizado... ---!${NC}\n'
-			$repoExists=1
+			let repoExists+=1
 		fi	
 	"
 fi
