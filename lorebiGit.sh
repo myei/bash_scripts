@@ -184,6 +184,7 @@ fi
 ##############################################################
 
 if [[ $option = "2" || $option = "3" ]]; then
+	printf "\n${RED}!--- ERROR: $repoExists ... ---!${NC}\n"
 	if [[ $repoExists = "t" ]]; then
 		printf '\n${RED}!--- ERROR: BANDERA... ---!${NC}\n'
 		exit 1
