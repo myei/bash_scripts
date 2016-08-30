@@ -38,7 +38,6 @@ BLINK='\e[5m'
 AMAZON='ubuntu@54.204.107.45'
 isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
-repoExists="f"
 
 ##############################################################
 #						M E N Ú
@@ -46,11 +45,11 @@ repoExists="f"
 clear
 #printf "${PURPLE}_______________________________________________________________\n\n${NC}"
 printf "\n 	   Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF}\n\n"
-printf " ${CYAN}Que acción desea realizar? \n\n${NC}"
-printf "  [${CYAN}1${NC}] Autenticarme con el Servidor [${RED}root${NC}] (${BLUE}Sólo la primera vez${NC})\n"
-printf "  [${CYAN}2${NC}] Crear repositorio y enlazar \n"
-printf "  [${CYAN}3${NC}] Enlazar a un repositorio existente \n"
-printf "  [${CYAN}4${NC}] Clonar repositorio \n"
+printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
+printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
+printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
+printf "  [${CYAN}${BOLD}3${NC}] Enlazar a un repositorio existente \n"
+printf "  [${CYAN}${BOLD}4${NC}] Clonar repositorio \n"
 read option
 #printf "\n${PURPLE}_______________________________________________________________\n${NC}"
 
@@ -59,15 +58,15 @@ read option
 ##############################################################
 
 validateCertificate() {
-	printf "\n\n${CYAN} Validando certificados...${NC}\n\n"
+	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}\n\n"
 	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) = "" ]]; then
-		printf "${RED} -- ERROR: No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente --${NC}\n"
+		printf "${RED} -- ${BOLD}ERROR: No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente --${NC}\n"
 		exit 1
 	fi
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
-	printf "\n${RED}!--- ERROR: Debe seleccionar una opción... ---!${NC}\n"
+	printf "\n${RED}!--- ${BOLD}ERROR: Debe seleccionar una opción... ---!${NC}\n"
 	exit 1
 elif [[ $option = "1" ]]; then
 
@@ -76,7 +75,7 @@ elif [[ $option = "1" ]]; then
 	##############################################################
 
 	if [ $EUID -ne 0 ]; then
-		printf "${RED} -- ERROR: Para acceder a esta opción debes ejecutar el script como root --${NC}\n"
+		printf "${RED} ${BOLD}-- ERROR: Para acceder a esta opción debes ejecutar el script como root --${NC}\n"
 		exit 1
 	fi
 
@@ -119,23 +118,23 @@ elif [[ $option = "3" || $option = "4"  ]]; then
 	#	  L I S T A D O   D E   R E P O S I T O R I O S
 	##############################################################
 
-	printf "${CYAN}\n Buscando repositorios...\n\n${NC}"
+	printf "${CYAN}\n ${BOLD}Buscando repositorios...${NF}\n\n${NC}"
 
 	array=($(ssh $AMAZON ls /home/ubuntu/git))
 
 	cont=0
 	for item in ${array[*]}
 	do
-		printf "     [${CYAN}$cont${NC}] %s\n" $item
+		printf "     [${CYAN}${BOLD}$cont${NC}] %s\n" $item
 		let cont+=1
 	done
 
 
-	printf "\n ${CYAN}Seleccione un repositorio:${NC}\n"
+	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NC}\n"
 	read repoSelec
 
     if [[ $repoSelec > ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
-		printf "${RED}!--- ERROR: Debe seleccionar un repositorio... ---!${NC}\n"
+		printf "${RED}!--- ${BOLD}ERROR: Debe seleccionar un repositorio...${NF} ---!${NC}\n"
 		exit 1
 	fi
 
@@ -148,10 +147,10 @@ fi
 
 if [[ $repository = "" ]]; then
 	validateCertificate
-	printf "\n${CYAN}-- Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
+	printf "\n${CYAN}-- ${BOLD}Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
 	read newRepo
 	if [[ $newRepo = "" ]]; then
-		printf "\n${RED}!--- ERROR: Debe ingresar el nombre del repositorio... ---!${NC}\n"
+		printf "\n${RED}!--- ${BOLD}ERROR: Debe ingresar el nombre del repositorio...${NF} ---!${NC}\n"
 	    exit 1
 	fi
 	repository=$newRepo".git"
@@ -161,9 +160,9 @@ fi
 #		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
 ##############################################################
 if [[ $option = "2" ]]; then
-	printf "\n\n${CYAN} Creando repositorio remoto...${NC}\n\n"
+	printf "\n\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
-	ssh -t -t $AMAZON "
+	creatingRepo=$(ssh -t -t $AMAZON "
 		if [ ! -d /home/ubuntu/git/$repository ]; then
 			cd /home/ubuntu/git
 			mkdir '$repository'
@@ -171,13 +170,10 @@ if [[ $option = "2" ]]; then
 			cd '$repository'
 			git --bare init
 			git config core.sharedRepository true
-			printf '\n${GREEN}-- EXITO: Repositorio creado!... --${NC}\n\n'
 		else
-			printf '\n${RED}!--- ERROR: Ese nombre de repositorio ya esta utilizado... ---!${NC}\n'
-			repoExist=0
-			printf $repoExist '... ---!${NC}\n'
+			echo 0
 		fi	
-	"
+	")
 fi
 
 ##############################################################
@@ -185,11 +181,13 @@ fi
 ##############################################################
 
 if [[ $option = "2" || $option = "3" ]]; then
-	printf "\n${RED}!--- ERROR: $repoExists ... ---!${NC}\n"
-	if [[ $repoExists = "t" ]]; then
-		printf '\n${RED}!--- ERROR: BANDERA... ---!${NC}\n'
+
+	if [[ $(grep "0" <<< $creatingRepo) ]]; then
+		printf "\n${RED}!--- ERROR: Ese nombre de repositorio ya esta utilizado... ---!${NC}\n"
 		exit 1
 	fi
+
+	printf '\n${GREEN}-- EXITO: Repositorio creado!... --${NC}\n\n'
 	printf "\n${CYAN}-- Creando repositorio local si no estaba creado... --${NC}\n\n"
 	git init
 	printf "\n${CYAN}-- Agregando archivos... --${NC}\n\n"
