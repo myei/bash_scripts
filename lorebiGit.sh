@@ -183,28 +183,28 @@ fi
 if [[ $option = "2" || $option = "3" ]]; then
 
 	if [[ $(grep "0" <<< $creatingRepo) ]]; then
-		printf "\n${RED}${BOLD} -- ERROR: Ese nombre de repositorio ya esta utilizado... --${NC}\n"
+		printf "\n${RED}${BOLD} ERROR: Ese nombre de repositorio ya esta utilizado...${NC}\n"
 		exit 1
 	fi
 
-	printf '\n${GREEN}${BOLD} -- EXITO: Repositorio creado!... --${NC}\n\n'
-	printf "\n${CYAN}${BOLD} -- Creando repositorio local si no estaba creado... --${NC}\n\n"
+	printf "\n${GREEN}${BOLD} EXITO: Repositorio creado!...${NC}\n\n"
+	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
 	git init
-	printf "\n${CYAN}${BOLD} -- Agregando archivos... --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n\n"
 	git add *
-	printf "\n${CYAN}${BOLD} -- Creando el commit... --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} Creando el commit...${NC}\n\n"
 	git commit -m "INITIAL COMMIT TO AWS'S SERVER"
 	git remote remove aws
 	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
-	printf "\n${CYAN}${BOLD} -- Cargando el estado del proyecto al: AWS's Server --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: AWS's Server${NC}\n\n"
 	git push aws master
 else
-	printf "\n${CYAN}${BOLD} -- Clonando repositorio --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} Clonando repositorio${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
 	cd ${repository:0:-4}
 	git remote rename origin aws
 fi
-	printf "\n${GREEN}${BOLD} -- Listo, ahora puedes seguir trabajando en tu proyecto... --${NC}\n\n"
-	printf "\n${CYAN}${BOLD} -- NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)... --${NC}\n\n"
+	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
+	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
 
 exit
