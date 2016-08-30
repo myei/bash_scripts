@@ -38,7 +38,7 @@ BLINK='\e[5m'
 AMAZON='ubuntu@54.204.107.45'
 isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
-repoExists=0
+repoExists="f"
 
 ##############################################################
 #						M E N Ú
@@ -174,7 +174,7 @@ if [[ $option = "2" ]]; then
 			printf '\n${GREEN}-- EXITO: Repositorio creado!... --${NC}\n\n'
 		else
 			printf '\n${RED}!--- ERROR: Ese nombre de repositorio ya esta utilizado... ---!${NC}\n'
-			let repoExists+=1
+			$repoExists='t'
 		fi	
 	"
 fi
@@ -184,7 +184,7 @@ fi
 ##############################################################
 
 if [[ $option = "2" || $option = "3" ]]; then
-	if [[ $repoExists = 1 ]]; then
+	if [[ $repoExists = "t" ]]; then
 		exit 1
 	fi
 	printf "\n${CYAN}-- Creando repositorio local si no estaba creado... --${NC}\n\n"
