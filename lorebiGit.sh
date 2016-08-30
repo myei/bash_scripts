@@ -58,11 +58,12 @@ read option
 ##############################################################
 
 validateCertificate() {
-	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}\n\n"
+	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}\n"
 	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) = "" ]]; then
 		printf "${RED} ${BOLD}ERROR: No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
 		exit 1
 	fi
+	printf "\n${GREEN}${BOLD} OK...${NC}\n"
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
@@ -109,7 +110,7 @@ elif [[ $option = "1" ]]; then
 
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
-	printf "\n${GREEN}${BOLD} Autenticación exitosa${NC}\n"
+	printf "\n${GREEN}${BOLD} Autenticación exitosa...${NC}\n"
 	exit
 
 elif [[ $option = "3" || $option = "4"  ]]; then
