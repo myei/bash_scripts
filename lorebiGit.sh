@@ -66,7 +66,7 @@ validateCertificate() {
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
-	printf "\n${RED}!--- ${BOLD}ERROR: Debe seleccionar una opción... ---!${NC}\n"
+	printf "\n${RED}${BOLD} -- ERROR: Debe seleccionar una opción... --${NC}\n"
 	exit 1
 elif [[ $option = "1" ]]; then
 
@@ -75,19 +75,19 @@ elif [[ $option = "1" ]]; then
 	##############################################################
 
 	if [ $EUID -ne 0 ]; then
-		printf "${RED} ${BOLD}-- ERROR: Para acceder a esta opción debes ejecutar el script como root --${NC}\n"
+		printf "${RED}${BOLD} -- ERROR: Para acceder a esta opción debes ejecutar el script como root --${NC}\n"
 		exit 1
 	fi
 
 	if [ ! -f LB-PMO.pem ]; then
-		printf "${RED} -- ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem --${NC}\n"
+		printf "${RED}${BOLD} -- ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem --${NC}\n"
 		exit 1
 	fi
 
-	printf "${CYAN} -- Ingrese su usuario de linux: --${NC}\n"
+	printf "${CYAN}${BOLD} -- Ingrese su usuario de linux: --${NC}\n"
 	read user
 	if [[ ! -d /home/$user || $user = "" ]]; then
-		printf "${RED} -- ERROR: Ese no es tu usuario, por favor ingresa el correcto --${NC}\n"
+		printf "${RED}${BOLD} -- ERROR: Ese no es tu usuario, por favor ingresa el correcto --${NC}\n"
 		exit 1
 	fi
 	
@@ -109,7 +109,7 @@ elif [[ $option = "1" ]]; then
 
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
-	printf "\n${GREEN} -- Autenticación exitosa --${NC}\n"
+	printf "\n${GREEN}${BOLD} -- Autenticación exitosa --${NC}\n"
 	exit
 
 elif [[ $option = "3" || $option = "4"  ]]; then
@@ -134,7 +134,7 @@ elif [[ $option = "3" || $option = "4"  ]]; then
 	read repoSelec
 
     if [[ $repoSelec > ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
-		printf "${RED}!--- ${BOLD}ERROR: Debe seleccionar un repositorio...${NF} ---!${NC}\n"
+		printf "${RED}${BOLD} -- ERROR: Debe seleccionar un repositorio... --${NC}\n"
 		exit 1
 	fi
 
@@ -147,10 +147,10 @@ fi
 
 if [[ $repository = "" ]]; then
 	validateCertificate
-	printf "\n${CYAN}-- ${BOLD}Introduce el nombre del respositorio a crear (sin .git): --${NC}\n"
+	printf "\n${CYAN}${BOLD} -- Introduce el nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}): --${NC}\n"
 	read newRepo
 	if [[ $newRepo = "" ]]; then
-		printf "\n${RED}!--- ${BOLD}ERROR: Debe ingresar el nombre del repositorio...${NF} ---!${NC}\n"
+		printf "\n${RED}${BOLD} -- ERROR: Debe ingresar el nombre del repositorio... --${NC}\n"
 	    exit 1
 	fi
 	repository=$newRepo".git"
@@ -183,28 +183,28 @@ fi
 if [[ $option = "2" || $option = "3" ]]; then
 
 	if [[ $(grep "0" <<< $creatingRepo) ]]; then
-		printf "\n${RED}!--- ERROR: Ese nombre de repositorio ya esta utilizado... ---!${NC}\n"
+		printf "\n${RED}${BOLD} -- ERROR: Ese nombre de repositorio ya esta utilizado... --${NC}\n"
 		exit 1
 	fi
 
-	printf '\n${GREEN}-- EXITO: Repositorio creado!... --${NC}\n\n'
-	printf "\n${CYAN}-- Creando repositorio local si no estaba creado... --${NC}\n\n"
+	printf '\n${GREEN}${BOLD} -- EXITO: Repositorio creado!... --${NC}\n\n'
+	printf "\n${CYAN}${BOLD} -- Creando repositorio local si no estaba creado... --${NC}\n\n"
 	git init
-	printf "\n${CYAN}-- Agregando archivos... --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} -- Agregando archivos... --${NC}\n\n"
 	git add *
-	printf "\n${CYAN}-- Creando el commit... --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} -- Creando el commit... --${NC}\n\n"
 	git commit -m "INITIAL COMMIT TO AWS'S SERVER"
 	git remote remove aws
 	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
-	printf "\n${CYAN}-- Cargando el estado del proyecto al: AWS's Server --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} -- Cargando el estado del proyecto al: AWS's Server --${NC}\n\n"
 	git push aws master
 else
-	printf "\n${CYAN}-- Clonando repositorio --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} -- Clonando repositorio --${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
 	cd ${repository:0:-4}
 	git remote rename origin aws
 fi
-	printf "\n${GREEN}-- Listo, ahora puedes seguir trabajando en tu proyecto... --${NC}\n\n"
-	printf "\n${CYAN}-- NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)... --${NC}\n\n"
+	printf "\n${GREEN}${BOLD} -- Listo, ahora puedes seguir trabajando en tu proyecto... --${NC}\n\n"
+	printf "\n${CYAN}${BOLD} -- NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)... --${NC}\n\n"
 
 exit

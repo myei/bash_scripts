@@ -23,23 +23,23 @@ validateCertificate() {
 }
 
 clear
-printf "${CYAN}\n ${BOLD}Buscando repositorios...${NF}\n\n${NC}"
+printf "${CYAN}\n ${BOLD}Buscando repositorios...\n\n${NC}"
 
 array=($(ssh $AMAZON ls /home/ubuntu/git))
 
 cont=0
 for item in ${array[*]}
 do
-	printf "     [${CYAN}$cont${NC}] %s\n" $item
+	printf "     [${CYAN}${BOLD}$cont${NC}] %s\n" $item
 	let cont+=1
 done
 
 
-printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NF}${NC}\n"
+printf "\n ${CYAN}${BOLD}Seleccione el repositorio a eliminar:${NF}${NC}\n"
 read repoSelec
 
 if [[ $repoSelec > ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
-	printf "${RED}!--- ${BOLD}ERROR: Debe seleccionar un repositorio...${NF} ---!${NC}\n\n"
+	printf "${RED}${BOLD}!--- ERROR: Debe seleccionar un repositorio... ---!${NC}\n\n"
 	exit 1
 fi
 
