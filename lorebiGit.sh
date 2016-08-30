@@ -175,6 +175,7 @@ if [[ $option = "2" ]]; then
 		else
 			printf '\n${RED}!--- ERROR: Ese nombre de repositorio ya esta utilizado... ---!${NC}\n'
 			$repoExists='t'
+			printf $repoExists '... ---!${NC}\n'
 		fi	
 	"
 fi
