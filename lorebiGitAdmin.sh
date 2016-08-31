@@ -38,6 +38,12 @@ NF='\e[0m'
 BLINK='\e[5m'
 S='\e[4m'
 
+# S Í M B O L O S
+GOOD='\u2714'
+BAD='\u2718'
+ARROW='\u27a1'
+HAND="\u261b"
+
 AMAZON='ubuntu@54.204.107.45'
 isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
@@ -61,12 +67,12 @@ read -n 1 option
 ##############################################################
 
 validateCertificate() {
-	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}\n"
+	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}"
 	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) = "" ]]; then
-		printf "${RED} ${BOLD}ERROR: No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
+		printf "${RED}${BOLD} ${BAD}\n\n ERROR: No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
 		exit 1
 	fi
-	printf "\n${GREEN}${BOLD} OK...${NC}\n"
+	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
