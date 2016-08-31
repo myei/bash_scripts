@@ -15,6 +15,8 @@
 #
 # - Clonar un proyecto existente desde servidor de Git
 #
+# - Eliminar un repositorio remoto
+#
 #	NOTA: Este script debe ser ejecutado desde la ruta del 
 #		  proyecto que se quiere enlazar con el AWS, o desde
 #		  donde se le quiere clonar
@@ -44,16 +46,15 @@ repoSelected=""
 #						M E N Ú
 ##############################################################
 clear
-#printf "${PURPLE}_______________________________________________________________\n\n${NC}"
 printf "\n 	   Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF}\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
 printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
+printf "  [${CYAN}${BOLD}4${NC}] Eliminar repositorio \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
-#printf "\n${PURPLE}_______________________________________________________________\n${NC}"
 
 ##############################################################
 #				A U T E N T I C A C I Ó N
@@ -68,7 +69,7 @@ validateCertificate() {
 	printf "\n${GREEN}${BOLD} OK...${NC}\n"
 }
 
-if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
+if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
 	printf "\n${RED}${BOLD} ERROR: Debe seleccionar una opción...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
@@ -115,7 +116,7 @@ elif [[ $option = "1" ]]; then
 	printf "\n${GREEN}${BOLD} Autenticación exitosa...${NC}\n"
 	exit
 
-elif [[ $option = "3" ]]; then
+elif [[ $option = "3" || $option = "4" ]]; then
 	validateCertificate
 
 	##############################################################
@@ -201,11 +202,24 @@ if [[ $option = "2" ]]; then
 	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
 	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: AWS's Server${NC}\n\n"
 	git push aws master
+
 elif [[ $option = "3" ]]; then
+
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
 	cd ${repository:0:-4}
 	git remote rename origin aws
+
+elif [[ $option = "4" ]]; then
+
+	ssh -t -t $AMAZON "
+		if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
+			sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
+		fi	
+	"
+	printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"
+	exit
+
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
