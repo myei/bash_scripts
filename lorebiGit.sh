@@ -74,6 +74,14 @@ validateCertificate() {
 	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 }
 
+validateConnection() {
+	if [[ $(echo $?) != 0 ]]; then
+		printf "\n${RED}${BOLD} ERROR: No se pudo conectar con el servidor AWS,
+	verifique su conexión a internet...${NC}\n\n"
+		exit 1
+	fi
+}
+
 if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
 	printf "\n${RED}${BOLD} ERROR: Debe seleccionar una opción...${NC}\n\n"
 	exit 1
@@ -132,11 +140,7 @@ elif [[ $option = "3" ]]; then
 
 	array=($(ssh $AMAZON ls /home/ubuntu/git))
 
-	if [[ $(echo $?) != 0 ]]; then
-		printf "\n${RED}${BOLD} ERROR: No se pudo conectar con el servidor AWS,
-	verifique su conexión a internet...${NC}\n\n"
-		exit 1
-	fi
+	validateConnection
 
 	cont=0
 	for item in ${array[*]}
@@ -191,6 +195,7 @@ if [[ $option = "2" ]]; then
 											echo 0
 										fi	
 									")
+	validateConnection
 
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
