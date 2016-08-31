@@ -34,6 +34,7 @@ NC='\033[0m'
 BOLD='\e[1m'
 NF='\e[0m'
 BLINK='\e[5m'
+S='\e[4m'
 
 AMAZON='ubuntu@54.204.107.45'
 isNumber="^-?[0-9]+([.][0-9]+)?$"
@@ -205,6 +206,6 @@ elif [[ $option = "3" ]]; then
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
-	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
+	printf "\n${CYAN}${BOLD} ${S}NOTA:{CYAN}${BOLD} tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
 
 exit
