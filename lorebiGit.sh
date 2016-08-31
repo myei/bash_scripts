@@ -49,9 +49,9 @@ repoSelected=""
 ##############################################################
 #						M E N Ú
 ##############################################################
+
 clear
-#printf "${PURPLE}_______________________________________________________________\n\n${NC}"
-printf "\n 	   Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF}\n\n"
+printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF} ::\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
@@ -59,7 +59,6 @@ printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
-#printf "\n${PURPLE}_______________________________________________________________\n${NC}"
 
 ##############################################################
 #				A U T E N T I C A C I Ó N
