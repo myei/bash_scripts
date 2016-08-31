@@ -50,7 +50,9 @@ printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
 printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
-read option
+
+printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
+read -n 1 option
 #printf "\n${PURPLE}_______________________________________________________________\n${NC}"
 
 ##############################################################
@@ -76,19 +78,19 @@ elif [[ $option = "1" ]]; then
 	##############################################################
 
 	if [ $EUID -ne 0 ]; then
-		printf "${RED}${BOLD} ERROR: Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
+		printf "\n\n${RED}${BOLD} ERROR: Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
 		exit 1
 	fi
 
 	if [ ! -f LB-PMO.pem ]; then
-		printf "${RED}${BOLD} ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem ${NC}\n\n"
+		printf "\n\n${RED}${BOLD} ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem ${NC}\n\n"
 		exit 1
 	fi
 
-	printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC}\n"
-	read user
+	printf "\n\n${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
+	read -p "" user
 	if [[ ! -d /home/$user || $user = "" ]]; then
-		printf "${RED}${BOLD} ERROR: Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
+		printf "\n${RED}${BOLD} ERROR: Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
 		exit 1
 	fi
 	
@@ -132,11 +134,11 @@ elif [[ $option = "3" ]]; then
 	done
 
 
-	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NC}\n"
-	read repoSelec
+	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NC} "
+	read -p "" repoSelec
 
     if [[ $repoSelec > ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
-		printf "${RED}${BOLD} ERROR: Debe seleccionar un repositorio...${NC}\n\n"
+		printf "\n${RED}${BOLD} ERROR: Debe seleccionar un repositorio...${NC}\n\n"
 		exit 1
 	fi
 
@@ -149,8 +151,8 @@ fi
 
 if [[ $repository = "" ]]; then
 	validateCertificate
-	printf "\n${CYAN}${BOLD} Introduce el nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}):${NC}\n"
-	read newRepo
+	printf "\n${CYAN}${BOLD} Introduce el nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}):${NC} "
+	read -p "" newRepo
 	if [[ $newRepo = "" ]]; then
 		printf "\n${RED}${BOLD} ERROR: Debe ingresar el nombre del repositorio...${NC}\n\n"
 	    exit 1
