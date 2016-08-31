@@ -166,7 +166,7 @@ if [[ $option = "2" ]]; then
 	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
 	##############################################################
 
-	printf "\n\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
+	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
 	creatingRepo=$(ssh -t -t $AMAZON "
 										if [ ! -d /home/ubuntu/git/$repository ]; then
