@@ -81,7 +81,7 @@ elif [[ $option = "1" ]]; then
 	fi
 
 	if [ ! -f LB-PMO.pem ]; then
-		printf "${RED}${BOLD} ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem$\n{NC}\n"
+		printf "${RED}${BOLD} ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem ${NC}\n\n"
 		exit 1
 	fi
 
