@@ -35,11 +35,12 @@ do
 done
 
 
-printf "\n ${CYAN}${BOLD}Seleccione el repositorio a eliminar:${NF}${NC}\n"
-read repoSelec
+printf "\n ${CYAN}${BOLD}Seleccione el repositorio a eliminar:${NF}${NC} "
+read -p "" repoSelec
+printf "\n"
 
 if [[ $repoSelec > ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
-	printf "${RED}${BOLD}!--- ERROR: Debe seleccionar un repositorio... ---!${NC}\n\n"
+	printf "\n${RED}${BOLD} ERROR: Debe seleccionar un repositorio... ${NC}\n\n"
 	exit 1
 fi
 
