@@ -126,13 +126,18 @@ elif [[ $option = "3" ]]; then
 
 	array=($(ssh $AMAZON ls /home/ubuntu/git))
 
+	if [[ $(echo $?) != 0 ]]; then
+		printf "\n${RED}${BOLD} ERROR: No se pudo conectar con el servidor AWS,
+	verifique su conexión a internet...${NC}\n\n"
+		exit 1
+	fi
+
 	cont=0
 	for item in ${array[*]}
 	do
 		printf "     [${CYAN}${BOLD}$cont${NC}] %s\n" $item
 		let cont+=1
 	done
-
 
 	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NC} "
 	read -p "" repoSelec
