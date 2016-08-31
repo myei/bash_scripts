@@ -206,6 +206,6 @@ elif [[ $option = "3" ]]; then
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
-	printf "\n${CYAN}${BOLD} ${S}NOTA:{CYAN}${BOLD} tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
+	printf "\n${CYAN}${BOLD} ${S}NOTA:${NC}${CYAN}${BOLD} tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
 
 exit
