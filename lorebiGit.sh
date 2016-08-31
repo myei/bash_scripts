@@ -48,8 +48,7 @@ printf "\n 	   Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF}\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
-printf "  [${CYAN}${BOLD}3${NC}] Enlazar a un repositorio existente \n"
-printf "  [${CYAN}${BOLD}4${NC}] Clonar repositorio \n"
+printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
 read option
 #printf "\n${PURPLE}_______________________________________________________________\n${NC}"
 
@@ -66,7 +65,7 @@ validateCertificate() {
 	printf "\n${GREEN}${BOLD} OK...${NC}\n"
 }
 
-if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
+if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
 	printf "\n${RED}${BOLD} ERROR: Debe seleccionar una opción...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
@@ -113,7 +112,7 @@ elif [[ $option = "1" ]]; then
 	printf "\n${GREEN}${BOLD} Autenticación exitosa...${NC}\n"
 	exit
 
-elif [[ $option = "3" || $option = "4"  ]]; then
+elif [[ $option = "3" ]]; then
 	validateCertificate
 	##############################################################
 	#	  L I S T A D O   D E   R E P O S I T O R I O S
@@ -157,31 +156,30 @@ if [[ $repository = "" ]]; then
 	repository=$newRepo".git"
 fi 
 
-##############################################################
-#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
-##############################################################
 if [[ $option = "2" ]]; then
+
+	##############################################################
+	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
+	##############################################################
+
 	printf "\n\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
 	creatingRepo=$(ssh -t -t $AMAZON "
-		if [ ! -d /home/ubuntu/git/$repository ]; then
-			cd /home/ubuntu/git
-			mkdir '$repository'
+										if [ ! -d /home/ubuntu/git/$repository ]; then
+											cd /home/ubuntu/git
+											mkdir '$repository'
 
-			cd '$repository'
-			git --bare init
-			git config core.sharedRepository true
-		else
-			echo 0
-		fi	
-	")
-fi
+											cd '$repository'
+											git --bare init
+											git config core.sharedRepository true
+										else
+											echo 0
+										fi	
+									")
 
-##############################################################
-#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
-##############################################################
-
-if [[ $option = "2" || $option = "3" ]]; then
+	##############################################################
+	#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
+	##############################################################
 
 	if [[ $(grep "0" <<< $creatingRepo) ]]; then
 		printf "\n${RED}${BOLD} ERROR: Ese nombre de repositorio ya esta utilizado...${NC}\n\n"
@@ -199,12 +197,13 @@ if [[ $option = "2" || $option = "3" ]]; then
 	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
 	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: AWS's Server${NC}\n\n"
 	git push aws master
-else
+elif [[ $option = "3" ]]; then
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
 	cd ${repository:0:-4}
 	git remote rename origin aws
 fi
+
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
 
