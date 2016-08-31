@@ -81,7 +81,7 @@ elif [[ $option = "1" ]]; then
 	fi
 
 	if [ ! -f LB-PMO.pem ]; then
-		printf "${RED}${BOLD} ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem$\n{NC}\n"
+		printf "${RED}${BOLD} ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem ${NC}\n\n"
 		exit 1
 	fi
 
@@ -115,6 +115,7 @@ elif [[ $option = "1" ]]; then
 
 elif [[ $option = "3" ]]; then
 	validateCertificate
+
 	##############################################################
 	#	  L I S T A D O   D E   R E P O S I T O R I O S
 	##############################################################
@@ -206,6 +207,6 @@ elif [[ $option = "3" ]]; then
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
-	printf "\n${CYAN}${BOLD} ${S}NOTA:${NC}${CYAN}${BOLD} tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
+	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
 
 exit
