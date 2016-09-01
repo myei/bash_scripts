@@ -144,7 +144,7 @@ elif [[ $option = "3" || $option = "4" ]]; then
 	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NC} "
 	read -p "" repoSelec
 
-    if [[ $repoSelec > ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
+    if [[ $repoSelec -ge ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
 		printf "\n${RED}${BOLD} ERROR: Debe seleccionar un repositorio...${NC}\n\n"
 		exit 1
 	fi
