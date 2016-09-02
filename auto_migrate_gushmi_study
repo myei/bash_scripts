@@ -1,10 +1,11 @@
 #! /bin/bash
 
 # REALIZO EL BACKUP A LA BASE DE DATOS DE PRODUCCION
-mysqldump -u study --password="study" --routines --opt gushmi_study > backup.sql
+mysqldump -u study --password="study" --routines --opt gushmi_study > gushmi_study.sql
+mysqldump -u study --password="study" --routines --opt gushmidbPRO > gushmidbPRO.sql
 
 # EJECUTO EL RESTORE CREADO ANTERIORMENTE EN LA BASE DE DATOS DE RESPALDO
-mysql -u study --password="study" gushmi_study_backup < backup.sql
+mysql -u study --password="study" gushmi_study_backup < gushmi_study.sql
+mysql -u study --password="study" gushmidbPRO_backup < gushmidbPRO.sql
 
 exit
-
