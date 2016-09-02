@@ -208,8 +208,8 @@ if [[ $option = "2" ]]; then
 	printf "\n${GREEN}${BOLD} EXITO: Repositorio creado!...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
 	git init
-	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n\n"
-	git add *
+	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n"
+	git add --all
 	printf "\n${CYAN}${BOLD} Creando el commit...${NC}\n\n"
 	git commit -m "INITIAL COMMIT TO AWS'S SERVER"
 	git remote remove aws
