@@ -198,6 +198,11 @@ if [[ $option = "2" ]]; then
 											cd '$repository'
 											git --bare init
 											git config core.sharedRepository true
+
+											echo -e '\n -- ADD ${repository}' >> /home/ubuntu/git/.log
+											echo $(hostname --ip-address) >> /home/ubuntu/git/.log
+											echo $(whoami) >> /home/ubuntu/git/.log
+											echo ' --'
 										else
 											echo 0
 										fi	
@@ -247,8 +252,10 @@ elif [[ $option = "4" ]]; then
 					touch /home/ubuntu/git/.log
 				fi
 	
+				echo -e '\n -- DELETE ${array[$repoSelec]}' >> /home/ubuntu/git/.log
 				echo $(hostname --ip-address) >> /home/ubuntu/git/.log
 				echo $(whoami) >> /home/ubuntu/git/.log
+				echo ' --'
 			fi	
 		"
 		printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"

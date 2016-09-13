@@ -194,6 +194,11 @@ if [[ $option = "2" ]]; then
 											cd '$repository'
 											git --bare init
 											git config core.sharedRepository true
+
+											echo -e '\n -- ADD ${repository}' >> /home/ubuntu/git/.log
+											echo $(hostname --ip-address) >> /home/ubuntu/git/.log
+											echo $(whoami) >> /home/ubuntu/git/.log
+											echo ' --'
 										else
 											echo 0
 										fi	
