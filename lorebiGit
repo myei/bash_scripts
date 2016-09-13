@@ -25,12 +25,16 @@
 #					G L O B A L E S
 ##############################################################
 
+# C O L O R S
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 PURPLE='\e[95m'
 NC='\033[0m'
+WHITE='\e[97m'
+
+# F O N T S
 BOLD='\e[1m'
 NF='\e[0m'
 BLINK='\e[5m'
@@ -148,7 +152,7 @@ elif [[ $option = "3" ]]; then
 		let cont+=1
 	done
 
-	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NC} "
+	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${WHITE} "
 	read -p "" repoSelec
  
     if [[ $repoSelec -ge ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then

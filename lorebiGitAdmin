@@ -155,7 +155,7 @@ elif [[ $option = "3" || $option = "4" ]]; then
 	done
 
 
-	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${NC} "
+	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${WHITE} "
 	read -p "" repoSelec
 	printf "\n"
 
