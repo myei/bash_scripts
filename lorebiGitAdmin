@@ -242,6 +242,13 @@ elif [[ $option = "4" ]]; then
 		ssh -t -t $AMAZON "
 			if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
 				sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
+
+				if [ ! -f /home/ubuntu/git/.log ]; then
+					touch /home/ubuntu/git/.log
+				fi
+	
+				echo $(hostname --ip-address) >> /home/ubuntu/git/.log
+				echo $(whoami) >> /home/ubuntu/git/.log
 			fi	
 		"
 		printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"
