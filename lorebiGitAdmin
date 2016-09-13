@@ -27,12 +27,16 @@
 #					G L O B A L E S
 ##############################################################
 
+# C O L O R S
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 PURPLE='\e[95m'
 NC='\033[0m'
+WHITE='\e[97m'
+
+# F O N T S
 BOLD='\e[1m'
 NF='\e[0m'
 BLINK='\e[5m'
@@ -230,14 +234,22 @@ elif [[ $option = "3" ]]; then
 
 elif [[ $option = "4" ]]; then
 
-	ssh -t -t $AMAZON "
-		if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
-			sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
-		fi	
-	"
-	printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"
-	exit
+	printf "\n ${RED}${BOLD}Está seguro de eliminar ${array[$repoSelec]} [Y/n]: ${WHITE}"
+	read -n 1 confirmDelete
+	printf "${NC}\n"
 
+	if [[ $confirmDelete = "Y" || $confirmDelete = "y" || $confirmDelete = "" ]]; then
+		ssh -t -t $AMAZON "
+			if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
+				sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
+			fi	
+		"
+		printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"
+	else
+		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
+	fi
+	
+	exit
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
