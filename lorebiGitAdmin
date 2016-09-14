@@ -87,6 +87,17 @@ validateConnection() {
 	fi
 }
 
+confirm() {
+	printf "\n ${RED}${BOLD}$1 [Y/n]: ${WHITE}"
+	read -n 1 confirmDelete
+	printf "${NC}\n"
+
+	if [[ $confirmDelete != "Y" && $confirmDelete != "y" && $confirmDelete != "" ]]; then
+		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
+		exit
+	fi
+}
+
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
 	printf "\n${RED}${BOLD} ERROR: Debe seleccionar una opción...${NC}\n\n"
 	exit 1
@@ -188,6 +199,8 @@ if [[ $option = "2" ]]; then
 	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
 	##############################################################
 
+	confirm "Está seguro de crear el repositorio $repository?"
+
 	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
 	creatingRepo=$(ssh -t -t $AMAZON "
@@ -232,6 +245,8 @@ if [[ $option = "2" ]]; then
 
 elif [[ $option = "3" ]]; then
 
+	confirm "Está seguro de clonar ${array[$repoSelec]} en este directorio?"
+
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
 	cd ${repository:0:-4}
@@ -239,30 +254,23 @@ elif [[ $option = "3" ]]; then
 
 elif [[ $option = "4" ]]; then
 
-	printf "\n ${RED}${BOLD}Está seguro de eliminar ${array[$repoSelec]} [Y/n]: ${WHITE}"
-	read -n 1 confirmDelete
-	printf "${NC}\n"
+	confirm "Está seguro de eliminar ${array[$repoSelec]}?"
 
-	if [[ $confirmDelete = "Y" || $confirmDelete = "y" || $confirmDelete = "" ]]; then
-		ssh -t -t $AMAZON "
-			if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
-				sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
+	ssh -t -t $AMAZON "
+		if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
+			sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
 
-				if [ ! -f /home/ubuntu/git/.log ]; then
-					touch /home/ubuntu/git/.log
-				fi
-	
-				echo -e '\n -- DELETE ${array[$repoSelec]}' >> /home/ubuntu/git/.log
-				echo $(hostname --ip-address) >> /home/ubuntu/git/.log
-				echo $(whoami) >> /home/ubuntu/git/.log
-				echo ' --'
-			fi	
-		"
-		printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"
-	else
-		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
-	fi
-	
+			if [ ! -f /home/ubuntu/git/.log ]; then
+				touch /home/ubuntu/git/.log
+			fi
+
+			echo -e '\n -- DELETE ${array[$repoSelec]}' >> /home/ubuntu/git/.log
+			echo $(hostname --ip-address) >> /home/ubuntu/git/.log
+			echo $(whoami) >> /home/ubuntu/git/.log
+			echo ' --'
+		fi	
+	"
+	printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"	
 	exit
 fi
 
