@@ -1,10 +1,27 @@
 #!/bin/bash
 
 # This is a program that keeps your address book up to date.
+# C O L O R S
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+PURPLE='\e[95m'
+NC='\033[0m'
+WHITE='\e[97m'
+
+# F O N T S
+BOLD='\e[1m'
+NF='\e[0m'
+BLINK='\e[5m'
+I='\e[3m'
+S='\e[4m'
 
 foo() {
   echo $1
   echo "$2"
 }
 
-foo hola pedro
+foo hola $(whoami)
+
+echo -e "${RED}${BOLD}Está seguro de clonar '${I}jkasndkwe' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"

@@ -89,10 +89,10 @@ validateConnection() {
 
 confirm() {
 	printf "\n ${RED}${BOLD}$1 [Y/n]: ${WHITE}"
-	read -n 1 confirmDelete
+	read -n 1 confirm
 	printf "${NC}\n"
 
-	if [[ $confirmDelete != "Y" && $confirmDelete != "y" && $confirmDelete != "" ]]; then
+	if [[ $confirm != "Y" && $confirm != "y" && $confirm != "" ]]; then
 		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
 		exit
 	fi
@@ -199,7 +199,7 @@ if [[ $option = "2" ]]; then
 	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
 	##############################################################
 
-	confirm "Está seguro de crear el repositorio $repository?"
+	confirm "Está seguro de crear el repositorio ${I}'$repository'${NF}${RED}${BOLD}?"
 
 	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
@@ -215,7 +215,7 @@ if [[ $option = "2" ]]; then
 											echo -e '\n -- ADD ${repository}' >> /home/ubuntu/git/.log
 											echo $(hostname --ip-address) >> /home/ubuntu/git/.log
 											echo $(whoami) >> /home/ubuntu/git/.log
-											echo ' --'
+											echo ' --' >> /home/ubuntu/git/.log
 										else
 											echo 0
 										fi	
@@ -245,7 +245,7 @@ if [[ $option = "2" ]]; then
 
 elif [[ $option = "3" ]]; then
 
-	confirm "Está seguro de clonar ${array[$repoSelec]} en este directorio?"
+	confirm "Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"
 
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
@@ -254,7 +254,7 @@ elif [[ $option = "3" ]]; then
 
 elif [[ $option = "4" ]]; then
 
-	confirm "Está seguro de eliminar ${array[$repoSelec]}?"
+	confirm "Está seguro de eliminar ${I}'${array[$repoSelec]}'${NF}${RED}${BOLD}?"
 
 	ssh -t -t $AMAZON "
 		if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
@@ -267,10 +267,10 @@ elif [[ $option = "4" ]]; then
 			echo -e '\n -- DELETE ${array[$repoSelec]}' >> /home/ubuntu/git/.log
 			echo $(hostname --ip-address) >> /home/ubuntu/git/.log
 			echo $(whoami) >> /home/ubuntu/git/.log
-			echo ' --'
+			echo ' --' >> /home/ubuntu/git/.log
 		fi	
 	"
-	printf "\n${GREEN} ${BOLD}Repositorio eliminado... ${NC}\n\n"	
+	printf "\n${GREEN} ${BOLD}${array[$repoSelec]} eliminado... ${NC}\n\n"	
 	exit
 fi
 
