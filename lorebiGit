@@ -31,8 +31,9 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 PURPLE='\e[95m'
-NC='\033[0m'
 WHITE='\e[97m'
+YELLOW='\e[93m'
+NC='\033[0m'
 
 # F O N T S
 BOLD='\e[1m'
@@ -87,13 +88,13 @@ validateConnection() {
 }
 
 confirm() {
-	printf "\n ${RED}${BOLD}$1 [Y/n]: ${WHITE}"
+	printf " $1${BOLD}$2$1${BOLD}? [Y/n]: ${WHITE}"
 	read -n 1 confirm
 	printf "${NC}\n"
 
 	if [[ $confirm != "Y" && $confirm != "y" && $confirm != "" ]]; then
 		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
-		exit
+		exit 1
 	fi
 }
 
@@ -166,6 +167,7 @@ elif [[ $option = "3" ]]; then
 
 	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${WHITE} "
 	read -p "" repoSelec
+	printf "\n"
  
     if [[ $repoSelec -ge ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
 		printf "\n${RED}${BOLD} ERROR: Debe seleccionar un repositorio...${NC}\n\n"
@@ -183,8 +185,9 @@ if [[ $repository = "" ]]; then
 	validateCertificate
 	printf "\n${CYAN}${BOLD} Introduce el nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}):${NC} "
 	read -p "" newRepo
+	printf "\n"
 	if [[ $newRepo = "" ]]; then
-		printf "\n${RED}${BOLD} ERROR: Debe ingresar el nombre del repositorio...${NC}\n\n"
+		printf "${RED}${BOLD} ERROR: Debe ingresar el nombre del repositorio...${NC}\n\n"
 	    exit 1
 	fi
 	repository=$newRepo".git"
@@ -196,7 +199,7 @@ if [[ $option = "2" ]]; then
 	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
 	##############################################################
 
-	confirm "Está seguro de crear el repositorio ${I}'$repository'${NF}${RED}${BOLD}?"
+	confirm "${YELLOW}" "Está seguro de crear el repositorio ${I}'$repository'${NF}"
 
 	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
@@ -241,7 +244,7 @@ if [[ $option = "2" ]]; then
 	git push aws master
 elif [[ $option = "3" ]]; then
 
-	confirm "Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"
+	confirm "${YELLOW}" "Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$(pwd)'${NF}"
 
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
