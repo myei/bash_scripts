@@ -17,11 +17,14 @@ BLINK='\e[5m'
 I='\e[3m'
 S='\e[4m'
 
-foo() {
-  echo $1
-  echo "$2"
-}
-
-foo hola $(whoami)
-
-echo -e "${RED}${BOLD}Está seguro de clonar '${I}jkasndkwe' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"
+aux=true
+while [[ aux ]]; do
+	if [[ $input = "" ]]; then
+		read -p "Ingrese algo: " input
+	else
+		echo "fin"
+		break
+	fi
+done
+echo "fin2"
+# echo -e "${RED}${BOLD}Está seguro de clonar '${I}jkasndkwe' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"
