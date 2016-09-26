@@ -107,17 +107,25 @@ elif [[ $option = "1" ]]; then
 	#		V A L I D A C I O N E S   G E N E R A L E S
 	##############################################################
 
+	printf "\n\n"
 	if [ $EUID -ne 0 ]; then
-		printf "\n\n${RED}${BOLD} ERROR: Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
+		printf "${RED}${BOLD} ERROR: Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
 		exit 1
 	fi
 
 	if [ ! -f LB-PMO.pem ]; then
-		printf "\n\n${RED}${BOLD} ERROR: Debes ejecutar este script desde la misma ruta donde se encuentra el certificado LB-PMO.pem ${NC}\n\n"
-		exit 1
+		printf "${YELLOW}${BOLD} No se encontró el certificado LB-PMO.pem, dime donde está?: ${NC}"
+		read -p "/" certPath
+		certPath="/"$certPath"/"
+		printf "\n"
+
+		if [ ! -f $certPath"LB-PMO.pem" ]; then
+			printf "${RED}${BOLD} ERROR: Debes ejecutar esta opción en el directorio del certificado ${I}'LB-PMO.pem'${RED}${BOLD} o decirme donde está... ${NC}\n\n"
+			exit 1
+		fi
 	fi
 
-	printf "\n\n${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
+	printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
 	read -p "" user
 	if [[ ! -d /home/$user || $user = "" ]]; then
 		printf "\n${RED}${BOLD} ERROR: Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
@@ -128,6 +136,8 @@ elif [[ $option = "1" ]]; then
 	#	  R E G I S T R A N D O   E L   C E R T I F I C A D O
 	##############################################################
 
+	printf "\n${CYAN}${BOLD} Autenticando...${NC}\n"
+
 	if [ ! -d /home/$user/.certs ]; then
 		mkdir /home/$user/.certs
 	fi
@@ -136,7 +146,7 @@ elif [[ $option = "1" ]]; then
 		touch /etc/ssh/ssh_config
 	fi
 
-	cp LB-PMO.pem /home/$user/.certs/
+	cp $certPath"LB-PMO.pem" /home/$user/.certs/
 	chmod 600 /home/$user/.certs/LB-PMO.pem
 	chown -R $user:$user /home/$user/.certs
 
