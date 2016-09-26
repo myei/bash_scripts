@@ -185,12 +185,11 @@ fi
 
 if [[ $repository = "" ]]; then
 	validateCertificate
-	printf "\n${CYAN}${BOLD} Introduce el nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}):${NC} "
+	printf "\n${CYAN}${BOLD} Nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}) [$(basename $(pwd))]:${NC} "
 	read -p "" newRepo
 	printf "\n"
 	if [[ $newRepo = "" ]]; then
-		printf "${RED}${BOLD} ERROR: Debe ingresar el nombre del repositorio...${NC}\n\n"
-	    exit 1
+	    newRepo=$(basename $(pwd))
 	fi
 	repository=$newRepo".git"
 fi 
