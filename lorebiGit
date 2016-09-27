@@ -113,6 +113,11 @@ elif [[ $option = "1" ]]; then
 		exit 1
 	fi
 
+	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) != "" ]]; then
+		confirm "${YELLOW}" "Parece que ya te autenticaste... Quieres volver a hacerlo para solucionar algún problema"
+		printf "\n"
+	fi
+
 	if [ ! -f LB-PMO.pem ]; then
 		printf "${YELLOW}${BOLD} No se encontró el certificado LB-PMO.pem, dime donde está?: ${NC}"
 		read -p "/" certPath
@@ -253,9 +258,30 @@ if [[ $option = "2" ]]; then
 	git push aws master
 elif [[ $option = "3" ]]; then
 
-	confirm "${YELLOW}" "Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$(pwd)'${NF}"
+	printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$(pwd)'${BOLD}? [Y/n/o]: ${WHITE}"
+	read -n 1 choice
+	printf "${NC}\n"
+	direc=$(pwd)"/"${repository:0:-4}
+
+	if [[ $choice = "o" || $choice = "O" ]]; then
+		printf "\n ${CYAN}${BOLD}Dime donde lo clono? [$(pwd)"/"${repository:0:-4}]: ${WHITE}"
+		read -p "" choice
+		printf "${NC}\n"
+
+		direc=$choice
+		cd $choice
+	elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
+		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
+		exit 1
+	fi
+
+	if [[ -d $direc ]]; then
+		printf "\n${RED}${BOLD} ERROR: Ya existe el directorio ${I}'$(pwd)"/"${repository:0:-4}'...${NC}\n\n"
+		exit 1
+	fi
 
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
+
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
 	cd ${repository:0:-4}
 	git remote rename origin aws

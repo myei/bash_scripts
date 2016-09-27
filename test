@@ -30,4 +30,4 @@ S='\e[4m'
 
 # echo -e "${RED}${BOLD}Está seguro de clonar '${I}jkasndkwe' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"
 
-echo $(basename $(pwd))
+echo $(pwd)"/otracosa"
