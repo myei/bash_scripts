@@ -98,6 +98,18 @@ confirm() {
 	fi
 }
 
+whereDoICLone() {
+	printf "\n ${CYAN}${BOLD}Dime donde lo clono? [$(pwd)"/"${repository:0:-4}]: ${WHITE}"
+	read -p "" choice
+	printf "${NC}\n"
+
+	if [[ $choice = "" ]]; then
+		direc=$(pwd)"/"${repository:0:-4}
+	else
+		direc=$choice
+	fi
+}
+
 if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
 	printf "\n${RED}${BOLD} ERROR: Debe seleccionar una opción...${NC}\n\n"
 	exit 1
@@ -264,20 +276,21 @@ elif [[ $option = "3" ]]; then
 	direc=$(pwd)"/"${repository:0:-4}
 
 	if [[ $choice = "o" || $choice = "O" ]]; then
-		printf "\n ${CYAN}${BOLD}Dime donde lo clono? [$(pwd)"/"${repository:0:-4}]: ${WHITE}"
-		read -p "" choice
-		printf "${NC}\n"
-
-		direc=$choice
+		whereDoICLone
 	elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
 		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
 		exit 1
 	fi
 
-	if [[ -d $direc ]]; then
-		printf "\n${RED}${BOLD} ERROR: Ya existe el directorio ${I}'$(pwd)"/"${repository:0:-4}'...${NC}\n\n"
-		exit 1
-	fi
+	allClear=false
+	while [[ $allClear = false ]]; do
+		if [[ -d $direc ]]; then
+			confirm "${YELLOW}" "Ya existe el directorio ${I}'$direc'... Clonar en uno distinto"
+			whereDoICLone
+		else
+			allClear=true
+		fi
+	done
 
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
