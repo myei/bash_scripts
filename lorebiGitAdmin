@@ -167,7 +167,9 @@ elif [[ $option = "1" ]]; then
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
 	printf "\n${GREEN}${BOLD} Autenticación exitosa...${NC}\n"
-	exit
+	printf "\n${CYAN}${BOLD} Presiona Enter para continuar...${NC}"
+	read -p ""
+	exec $(readlink -f "$0")
 
 elif [[ $option = "3" || $option = "4" ]]; then
 	validateCertificate
