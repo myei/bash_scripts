@@ -269,7 +269,6 @@ elif [[ $option = "3" ]]; then
 		printf "${NC}\n"
 
 		direc=$choice
-		cd $choice
 	elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
 		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
 		exit 1
@@ -282,8 +281,8 @@ elif [[ $option = "3" ]]; then
 
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
-	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
-	cd ${repository:0:-4}
+	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository $choice
+	cd $direc
 	git remote rename origin aws
 	
 fi
