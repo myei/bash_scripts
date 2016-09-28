@@ -62,6 +62,7 @@ printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
 printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
+printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
@@ -111,7 +112,7 @@ whereDoICLone() {
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
-	printf "\n${RED}${BOLD} ERROR: Debe seleccionar una opción...${NC}\n\n"
+	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
 

@@ -63,6 +63,7 @@ printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
 printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
 printf "  [${CYAN}${BOLD}4${NC}] Eliminar repositorio \n"
+printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
@@ -99,8 +100,20 @@ confirm() {
 	fi
 }
 
+whereDoICLone() {
+	printf "\n ${CYAN}${BOLD}Dime donde lo clono? [$(pwd)"/"${repository:0:-4}]: ${WHITE}"
+	read -p "" choice
+	printf "${NC}\n"
+
+	if [[ $choice = "" ]]; then
+		direc=$(pwd)"/"${repository:0:-4}
+	else
+		direc=$choice
+	fi
+}
+
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
-	printf "\n${RED}${BOLD} ERROR: Debe seleccionar una opción...${NC}\n\n"
+	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
 
@@ -256,11 +269,32 @@ if [[ $option = "2" ]]; then
 
 elif [[ $option = "3" ]]; then
 
-	confirm "${YELLOW}" "Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$(pwd)'${NF}"
+	printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$(pwd)'${BOLD}? [Y/n/o]: ${WHITE}"
+	read -n 1 choice
+	printf "${NC}\n"
+	direc=$(pwd)"/"${repository:0:-4}
+
+	if [[ $choice = "o" || $choice = "O" ]]; then
+		whereDoICLone
+	elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
+		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
+		exit 1
+	fi
+
+	allClear=false
+	while [[ $allClear = false ]]; do
+		if [[ -d $direc ]]; then
+			confirm "${YELLOW}" "Ya existe el directorio ${I}'$direc'... Clonar en uno distinto"
+			whereDoICLone
+		else
+			allClear=true
+		fi
+	done
 
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
-	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository
-	cd ${repository:0:-4}
+
+	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository $choice
+	cd $direc
 	git remote rename origin aws
 
 elif [[ $option = "4" ]]; then
