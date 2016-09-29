@@ -127,17 +127,22 @@ elif [[ $option = "1" ]]; then
 		exit 1
 	fi
 
-	if [ ! -f LB-PMO.pem ]; then
-		printf "${YELLOW}${BOLD} No se encontró el certificado LB-PMO.pem, dime donde está?: ${NC}"
-		read -p "/" certPath
-		certPath="/"$certPath"/"
+	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) != "" ]]; then
+		confirm "${YELLOW}" "Parece que ya te autenticaste... Quieres volver a hacerlo para solucionar algún problema"
 		printf "\n"
-
-		if [ ! -f $certPath"LB-PMO.pem" ]; then
-			printf "${RED}${BOLD} ERROR: Debes ejecutar esta opción en el directorio del certificado ${I}'LB-PMO.pem'${RED}${BOLD} o decirme donde está... ${NC}\n\n"
-			exit 1
-		fi
 	fi
+
+	foundIt=false
+	while [[ $foundIt = false ]]; do
+		if [ ! -f $certPath"LB-PMO.pem" ]; then
+			printf "${YELLOW}${BOLD} No encontré el certificado LB-PMO.pem, dime donde está?: ${NC}"
+			read -p "/" certPath
+			certPath="/"$certPath"/"
+			printf "\n"
+		else
+			foundIt=true
+		fi
+	done
 
 	printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
 	read -p "" user
@@ -271,10 +276,10 @@ if [[ $option = "2" ]]; then
 
 elif [[ $option = "3" ]]; then
 
-	printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$(pwd)'${BOLD}? [Y/n/o]: ${WHITE}"
+	direc=$(pwd)"/"${repository:0:-4}
+	printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$direc'${BOLD}? [Y/n/o]: ${WHITE}"
 	read -n 1 choice
 	printf "${NC}\n"
-	direc=$(pwd)"/"${repository:0:-4}
 
 	if [[ $choice = "o" || $choice = "O" ]]; then
 		whereDoICLone
