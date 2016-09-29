@@ -86,3 +86,17 @@ echo $(pwd)"/otracosa"
 #         * ) echo "Please enter 1, 2, or 0"; press_enter
 #     esac
 # done
+
+spin[0]="-"
+spin[1]="\\"
+spin[2]="|"
+spin[3]="/"
+
+echo -n "[loading] ${spin[0]}"
+while [[ true ]]; do
+  for i in "${spin[@]}"
+  do
+        echo -ne "\b$i"
+        sleep 0.1
+  done
+done
