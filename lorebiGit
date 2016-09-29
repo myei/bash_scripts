@@ -51,12 +51,13 @@ HAND="\u261b"
 AMAZON='ubuntu@54.204.107.45'
 isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
+clearForReal() { printf "\ec"; }
 
 ##############################################################
 #						M E N Ú
 ##############################################################
 
-clear
+clearForReal
 printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF} ::\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
@@ -112,6 +113,7 @@ whereDoICLone() {
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
+	clearForReal
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
@@ -306,4 +308,6 @@ fi
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
 
+	pressEnter "salir"
+	clearForReal
 exit

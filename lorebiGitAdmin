@@ -52,11 +52,12 @@ HAND="\u261b"
 AMAZON='ubuntu@54.204.107.45'
 isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
+clearForReal() { printf "\ec"; }
 
 ##############################################################
 #						M E N Ú
 ##############################################################
-clear
+clearForReal
 printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF} ::\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
@@ -112,7 +113,13 @@ whereDoICLone() {
 	fi
 }
 
+pressEnter() {
+	printf "\n${CYAN}${BOLD} Presiona Enter para $0...${NC}"
+	read -p ""
+}
+
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
+	clearForReal
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
@@ -172,8 +179,8 @@ elif [[ $option = "1" ]]; then
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
 	printf "\n${GREEN}${BOLD} Autenticación exitosa...${NC}\n"
-	printf "\n${CYAN}${BOLD} Presiona Enter para continuar...${NC}"
-	read -p ""
+
+	pressEnter "continuar"
 	exec $(readlink -f "$0")
 
 elif [[ $option = "3" || $option = "4" ]]; then
@@ -329,4 +336,6 @@ fi
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
 
+	pressEnter "salir"
+	clearForReal
 exit
