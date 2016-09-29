@@ -67,6 +67,7 @@ printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
+clearForReal
 
 ##############################################################
 #				A U T E N T I C A C I Ó N
@@ -112,8 +113,12 @@ whereDoICLone() {
 	fi
 }
 
+pressEnter() {
+	printf "\n${CYAN}${BOLD} Presiona Enter para $1...${NC}"
+	read -p ""
+}
+
 if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
-	clearForReal
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
@@ -173,8 +178,8 @@ elif [[ $option = "1" ]]; then
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
 	printf "\n${GREEN}${BOLD} Autenticación exitosa...${NC}\n"
-	printf "\n${CYAN}${BOLD} Presiona Enter para continuar...${NC}"
-	read -p ""
+
+	pressEnter "continuar"
 	exec $(readlink -f "$0")
 
 elif [[ $option = "3" ]]; then

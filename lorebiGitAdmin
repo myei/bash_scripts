@@ -68,6 +68,7 @@ printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
+clearForReal
 
 ##############################################################
 #				A U T E N T I C A C I Ó N
@@ -114,12 +115,11 @@ whereDoICLone() {
 }
 
 pressEnter() {
-	printf "\n${CYAN}${BOLD} Presiona Enter para $0...${NC}"
+	printf "\n${CYAN}${BOLD} Presiona Enter para $1...${NC}"
 	read -p ""
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
-	clearForReal
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
@@ -329,6 +329,7 @@ elif [[ $option = "4" ]]; then
 			echo ' --' >> /home/ubuntu/git/.log
 		fi	
 	"
+	clearForReal
 	printf "\n${GREEN} ${BOLD}${array[$repoSelec]} eliminado... ${NC}\n\n"	
 	exit
 fi
