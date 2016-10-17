@@ -68,7 +68,7 @@ printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
-clearForReal
+# clearForReal
 
 ##############################################################
 #				A U T E N T I C A C I Ó N

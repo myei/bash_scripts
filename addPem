@@ -1,0 +1,114 @@
+#!/bin/bash
+
+#!/bin/bash
+##############################################################
+#
+# 					Creado por: Manuel Gil
+#
+# Este script permite:
+#
+# - Agregar un certificado pem al ssh para realizar conexiones
+#   rápidas al servidor
+#
+##############################################################
+
+##############################################################
+#					G L O B A L E S
+##############################################################
+
+# C O L O R S
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+PURPLE='\e[95m'
+WHITE='\e[97m'
+YELLOW='\e[93m'
+NC='\033[0m'
+
+# F O N T S
+BOLD='\e[1m'
+NF='\e[0m'
+BLINK='\e[5m'
+I='\e[3m'
+S='\e[4m'
+
+# S Í M B O L O S
+GOOD='\u2714'
+BAD='\u2718'
+ARROW='\u27a1'
+HAND="\u261b"
+
+AMAZON='ubuntu@54.204.107.45'
+isNumber="^-?[0-9]+([.][0-9]+)?$"
+repoSelected=""
+clearForReal() { printf "\ec"; }
+
+confirm() {
+	printf " $1${BOLD}$2$1${BOLD}? [Y/n]: ${WHITE}"
+	read -n 1 confirm
+	printf "${NC}\n"
+
+	if [[ $confirm != "Y" && $confirm != "y" && $confirm != "" ]]; then
+		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
+		exit 1
+	fi
+}
+
+pressEnter() {
+	printf "\n${CYAN}${BOLD} Presiona Enter para $1...${NC}"
+	read -p ""
+}
+
+clearForReal
+##############################################################
+#		V A L I D A C I O N E S   G E N E R A L E S
+##############################################################
+printf "  ${YELLOW}${BOLD}  > Añadir .pem al ssh \n\n"
+if [ $EUID -ne 0 ]; then
+	printf "${RED}${BOLD} ERROR: Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
+	exit 1
+fi
+
+printf "${CYAN}${BOLD} Nombre o path del .pem?: ${NF}${BOLD}"
+read -p "" pem
+printf "\n"
+
+pem=$pem".pem"
+if [ ! -f $pem ]; then
+	printf "${RED}${BOLD} Ejecutame donde esté el $pem..."
+	exit 1
+fi
+
+if [[ $(grep -lir $pem /etc/ssh/ssh_config) != "" ]]; then
+	confirm "${YELLOW}" "Parece que ya te autenticaste... Quieres volver a hacerlo para solucionar algún problema"
+	printf "\n"
+fi
+
+printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
+read -p "" user
+if [[ ! -d /home/$user || $user = "" ]]; then
+	printf "\n${RED}${BOLD} Ese no es tu usuario, ingresa el correcto${NC}\n\n"
+	exit 1
+fi
+
+printf "\n${CYAN}${BOLD} Registrando...${NC}\n"
+
+if [ ! -d /home/$user/.certs ]; then
+	mkdir /home/$user/.certs
+fi
+
+if [ ! -f /etc/ssh/ssh_config ]; then
+	touch /etc/ssh/ssh_config
+fi
+
+cp $pem /home/$user/.certs/
+chmod 600 /home/$user/.certs/$pem
+chown -R $user:users /home/$user/.certs
+
+echo -e "\n IdentityFile /home/$user/.certs/$pem" >> /etc/ssh/ssh_config
+
+printf "\n${GREEN}${BOLD} Listo...${NC}\n"
+
+pressEnter "Salir"
+clearForReal
