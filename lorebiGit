@@ -76,7 +76,7 @@ read -n 1 option
 validateCertificate() {
 	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}"
 	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) = "" ]]; then
-		printf "${RED}${BOLD} ${BAD}\n\n ERROR: No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
+		printf "${RED}${BOLD} ${BAD}\n\n No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
 		exit 1
 	fi
 	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
@@ -84,7 +84,7 @@ validateCertificate() {
 
 validateConnection() {
 	if [[ $(echo $?) != 0 ]]; then
-		printf "\n${RED}${BOLD} ERROR: No se pudo conectar con el servidor AWS,
+		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS,
 	verifique su conexión a internet...${NC}\n\n"
 		exit 1
 	fi
@@ -129,7 +129,7 @@ elif [[ $option = "1" ]]; then
 
 	printf "\n\n"
 	if [ $EUID -ne 0 ]; then
-		printf "${RED}${BOLD} ERROR: Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
+		printf "${RED}${BOLD} Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
 		exit 1
 	fi
 
@@ -153,7 +153,7 @@ elif [[ $option = "1" ]]; then
 	printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
 	read -p "" user
 	if [[ ! -d /home/$user || $user = "" ]]; then
-		printf "\n${RED}${BOLD} ERROR: Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
+		printf "\n${RED}${BOLD} Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
 		exit 1
 	fi
 	
@@ -207,7 +207,7 @@ elif [[ $option = "3" ]]; then
 	printf "\n"
  
     if [[ $repoSelec -ge ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
-		printf "\n${RED}${BOLD} ERROR: Debe seleccionar un repositorio...${NC}\n\n"
+		printf "\n${RED}${BOLD} Debe seleccionar un repositorio...${NC}\n\n"
 		exit 1
 	fi
 
@@ -263,7 +263,7 @@ if [[ $option = "2" ]]; then
 	##############################################################
 
 	if [[ $(grep "0" <<< $creatingRepo) ]]; then
-		printf "\n${RED}${BOLD} ERROR: Ese nombre de repositorio ya esta utilizado...${NC}\n\n"
+		printf "\n${RED}${BOLD} Ese nombre de repositorio ya esta utilizado...${NC}\n\n"
 		exit 1
 	fi
 
