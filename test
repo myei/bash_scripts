@@ -1,7 +1,4 @@
 #!/bin/bash
-sudo echo "Thanks."
-
-# This is a program that keeps your address book up to date.
 # C O L O R S
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -30,9 +27,6 @@ S='\e[4m'
 # echo "fin2"
 
 # echo -e "${RED}${BOLD}Está seguro de clonar '${I}jkasndkwe' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"
-
-echo $(pwd)"/otracosa"
-
 
 # exec $(readlink -f "$0")
 
@@ -87,16 +81,28 @@ echo $(pwd)"/otracosa"
 #     esac
 # done
 
-spin[0]="-"
-spin[1]="\\"
-spin[2]="|"
-spin[3]="/"
+######################
+# 	L O A D E R
+######################
 
-echo -n "[loading] ${spin[0]}"
-while [[ true ]]; do
-  for i in "${spin[@]}"
-  do
-        echo -ne "\b$i"
-        sleep 0.1
-  done
-done
+# spin[0]="-"
+# spin[1]="\\"
+# spin[2]="|"
+# spin[3]="/"
+
+# echo -n "[loading] ${spin[0]}"
+# while [[ true ]]; do
+#   for i in "${spin[@]}"
+#   do
+#         echo -ne "\b$i"
+#         sleep 0.1
+#   done
+# done
+
+######################
+# 	E N D  L O A D E R
+######################
+
+read -p "Enter: " name
+name=${name:-Richard}
+echo $name

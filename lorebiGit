@@ -103,7 +103,7 @@ confirm() {
 
 whereDoICLone() {
 	printf "\n ${CYAN}${BOLD}Dime donde lo clono? [$(pwd)"/"${repository:0:-4}]: ${WHITE}"
-	read -p "" choice
+	read -p "" -e choice
 	printf "${NC}\n"
 
 	if [[ $choice = "" ]]; then
@@ -140,10 +140,10 @@ elif [[ $option = "1" ]]; then
 
 	foundIt=false
 	while [[ $foundIt = false ]]; do
-		if [ ! -f $certPath"LB-PMO.pem" ]; then
+		if [[ ! -f $certPath"LB-PMO.pem" ]]; then
 			printf "${YELLOW}${BOLD} No encontré el certificado LB-PMO.pem, dime donde está?: ${NC}"
-			read -p "/" certPath
-			certPath="/"$certPath"/"
+			read -p "" -e certPath
+			certPath=$certPath"/"
 			printf "\n"
 		else
 			foundIt=true
