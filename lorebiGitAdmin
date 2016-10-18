@@ -293,6 +293,8 @@ elif [[ $option = "3" ]]; then
 	elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
 		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
 		exit 1
+	else 
+		choice=""
 	fi
 
 	allClear=false
