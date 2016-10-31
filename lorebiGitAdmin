@@ -170,7 +170,7 @@ elif [[ $option = "1" ]]; then
 		rm /usr/bin/lorebiGitAdmin
 	fi
 
-	cp $(pwd)"/"$(basename $0) /home/$user/.lorebiGitAdmin
+	cp $(readlink -f $0) /home/$user/.lorebiGitAdmin
 	ln -s /home/$user/.lorebiGitAdmin /usr/bin/lorebiGitAdmin
 
 	printf "\n${CYAN}${BOLD} Autenticando...${NC}\n"
