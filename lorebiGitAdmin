@@ -162,6 +162,17 @@ elif [[ $option = "1" ]]; then
 	#	  R E G I S T R A N D O   E L   C E R T I F I C A D O
 	##############################################################
 
+	if [ ! -f /home/$user/.lorebiGitAdmin ]; then
+		rm /home/$user/.lorebiGitAdmin
+	fi
+
+	if [ -L /usr/bin/lorebiGitAdmin ]; then
+		rm /usr/bin/lorebiGitAdmin
+	fi
+
+	cp $(pwd)"/"$(basename $0) /home/$user/.lorebiGitAdmin
+	ln -s /home/$user/.lorebiGitAdmin /usr/bin/lorebiGitAdmin
+
 	printf "\n${CYAN}${BOLD} Autenticando...${NC}\n"
 
 	if [ ! -d /home/$user/.certs ]; then
