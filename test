@@ -15,94 +15,17 @@ BLINK='\e[5m'
 I='\e[3m'
 S='\e[4m'
 
-# aux=true
-# while [[ aux ]]; do
-# 	if [[ $input = "" ]]; then
-# 		read -p "Ingrese algo: " input
-# 	else
-# 		echo "fin"
-# 		break
-# 	fi
-# done
-# echo "fin2"
+UPSTREAM=${1:-'@{u}'}
+LOCAL=$(git rev-parse @)
+REMOTE=$(git rev-parse "$UPSTREAM")
+BASE=$(git merge-base @ "$UPSTREAM")
 
-# echo -e "${RED}${BOLD}Está seguro de clonar '${I}jkasndkwe' ${NF}${RED}${BOLD}en ${I}'$(pwd)'${NF}${RED}${BOLD}?"
-
-# exec $(readlink -f "$0")
-
-
-# ONE SCRIPT
-# selection=
-# until [ "$selection" = "0" ]; do
-#     echo ""
-#     echo "PROGRAM MENU"
-#     echo "1 - display free disk space"
-#     echo "2 - display free memory"
-#     echo ""
-#     echo "0 - exit program"
-#     echo ""
-#     echo -n "Enter selection: "
-#     read selection
-#     echo ""
-#     case $selection in
-#         1 ) df ;;
-#         2 ) free ;;
-#         0 ) exit ;;
-#         * ) echo "Please enter 1, 2, or 0"
-#     esac
-# done
-
-
-# function press_enter
-# {
-#     echo ""
-#     echo -n "Press Enter to continue"
-#     read
-#     clear
-# }
-
-# selection=
-# until [ "$selection" = "0" ]; do
-#     echo ""
-#     echo "PROGRAM MENU"
-#     echo "1 - display free disk space"
-#     echo "2 - display free memory"
-#     echo ""
-#     echo "0 - exit program"
-#     echo ""
-#     echo -n "Enter selection: "
-#     read selection
-#     echo ""
-#     case $selection in
-#         1 ) df ; press_enter ;;
-#         2 ) free ; press_enter ;;
-#         0 ) exit ;;
-#         * ) echo "Please enter 1, 2, or 0"; press_enter
-#     esac
-# done
-
-######################
-# 	L O A D E R
-######################
-
-# spin[0]="-"
-# spin[1]="\\"
-# spin[2]="|"
-# spin[3]="/"
-
-# echo -n "[loading] ${spin[0]}"
-# while [[ true ]]; do
-#   for i in "${spin[@]}"
-#   do
-#         echo -ne "\b$i"
-#         sleep 0.1
-#   done
-# done
-
-######################
-# 	E N D  L O A D E R
-######################
-
-read -p "Enter: " name
-name=${name:-Richard}
-echo $name
+if [ $LOCAL = $REMOTE ]; then
+    echo "Up-to-date"
+elif [ $LOCAL = $BASE ]; then
+    echo "Need to pull"
+elif [ $REMOTE = $BASE ]; then
+    echo "Need to push"
+else
+    echo "Diverged"
+fi
