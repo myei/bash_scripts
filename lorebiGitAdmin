@@ -17,10 +17,6 @@
 #
 # - Eliminar un repositorio remoto
 #
-#	NOTA: Este script debe ser ejecutado desde la ruta del 
-#		  proyecto que se quiere enlazar con el AWS, o desde
-#		  donde se le quiere clonar
-#
 ##############################################################
 
 ##############################################################
@@ -281,7 +277,7 @@ if [[ $option = "2" ]]; then
 		exit 1
 	fi
 
-	printf "\n${GREEN}${BOLD} EXITO: Repositorio creado!...${NC}\n\n"
+	printf "\n${GREEN}${BOLD} Repositorio creado...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
 	git init
 	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n"
