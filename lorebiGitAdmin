@@ -197,7 +197,8 @@ elif [[ $option = "1" ]]; then
 
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
-	printf "\n${GREEN}${BOLD} Autenticación exitosa...${NC}\n"
+	$(ssh -t -t $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
+	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: 'lorebiGitAdmin'...${NC}\n"
 
 	pressEnter "salir"
 	clearForReal
@@ -327,6 +328,7 @@ elif [[ $option = "3" ]]; then
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository $choice
+	$(ssh -t -t $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
 	cd $direc
 	git remote rename origin aws
 
