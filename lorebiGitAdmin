@@ -48,6 +48,8 @@ HAND="\u261b"
 AMAZON='ubuntu@54.204.107.45'
 isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
+userip=$(hostname --ip-address)
+user=$(whoami)
 clearForReal() { printf "\ec"; }
 
 ##############################################################
@@ -113,6 +115,15 @@ whereDoICLone() {
 pressEnter() {
 	printf "\n${CYAN}${BOLD} Presiona Enter para $1...${NC}"
 	read -p ""
+}
+
+logger() {
+	logPath="/home/ubuntu/git/.log"
+
+	echo -e "\n -- $1 $2" >> $logPath
+	echo $3 >> $logPath
+	echo $4 >> $logPath
+	echo " --" >> $logPath
 }
 
 if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
@@ -258,10 +269,7 @@ if [[ $option = "2" ]]; then
 											git --bare init
 											git config core.sharedRepository true
 
-											echo -e '\n -- ADD ${repository}' >> /home/ubuntu/git/.log
-											echo $(hostname --ip-address) >> /home/ubuntu/git/.log
-											echo $(whoami) >> /home/ubuntu/git/.log
-											echo ' --' >> /home/ubuntu/git/.log
+											$(declare -f); logger ADD ${repository} $userip  $user
 										else
 											echo 0
 										fi	
@@ -321,6 +329,20 @@ elif [[ $option = "3" ]]; then
 	cd $direc
 	git remote rename origin aws
 
+	# C R E A N D O   Y   A C T U A L I Z A N D O   
+	# T O D A S   L A S   R A M A S   R E M O T A S
+	branches=$(git branch -a | grep remotes/aws | grep -v HEAD | grep -v master)
+
+	cont=0
+	for remote in ${branches[*]}
+	do
+		IFS='/' read -r -a branch <<< "$remote"
+		printf "\n${CYAN}${BOLD} Creando y actualizando rama remota: ${YELLOW}${branch[2]} ${NC}\n\n"
+		git branch ${branch[2]} $remote
+
+		let cont+=1
+	done
+
 elif [[ $option = "4" ]]; then
 
 	confirm "${RED}" "Está seguro de eliminar ${I}'${array[$repoSelec]}'${NF}"
@@ -333,10 +355,7 @@ elif [[ $option = "4" ]]; then
 				touch /home/ubuntu/git/.log
 			fi
 
-			echo -e '\n -- DELETE ${array[$repoSelec]}' >> /home/ubuntu/git/.log
-			echo $(hostname --ip-address) >> /home/ubuntu/git/.log
-			echo $(whoami) >> /home/ubuntu/git/.log
-			echo ' --' >> /home/ubuntu/git/.log
+			$(declare -f); logger DELETE ${array[$repoSelec]} $userip  $user
 		fi	
 	"
 	clearForReal

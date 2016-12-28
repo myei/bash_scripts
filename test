@@ -5,8 +5,9 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
 PURPLE='\e[95m'
-NC='\033[0m'
 WHITE='\e[97m'
+YELLOW='\e[93m'
+NC='\033[0m'
 
 # F O N T S
 BOLD='\e[1m'
@@ -15,17 +16,34 @@ BLINK='\e[5m'
 I='\e[3m'
 S='\e[4m'
 
-UPSTREAM=${1:-'@{u}'}
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse "$UPSTREAM")
-BASE=$(git merge-base @ "$UPSTREAM")
+# S Í M B O L O S
+GOOD='\u2714'
+BAD='\u2718'
+ARROW='\u27a1'
+HAND="\u261b"
 
-if [ $LOCAL = $REMOTE ]; then
-    echo "Up-to-date"
-elif [ $LOCAL = $BASE ]; then
-    echo "Need to pull"
-elif [ $REMOTE = $BASE ]; then
-    echo "Need to push"
-else
-    echo "Diverged"
-fi
+# UPSTREAM=${1:-'@{u}'}
+# LOCAL=$(git rev-parse @)
+# REMOTE=$(git rev-parse "$UPSTREAM")
+# BASE=$(git merge-base @ "$UPSTREAM")
+
+# if [ $LOCAL = $REMOTE ]; then
+#     echo "Up-to-date"
+# elif [ $LOCAL = $BASE ]; then
+#     echo "Need to pull"
+# elif [ $REMOTE = $BASE ]; then
+#     echo "Need to push"
+# else
+#     echo "Diverged"
+# fi
+
+branches=$(git branch -a | grep remotes/aws | grep -v HEAD | grep -v master)
+
+cont=0
+for remote in ${branches[*]}
+do
+	IFS='/' read -r -a branch <<< "$remote"
+	printf "\n${CYAN}${BOLD} Creando y actualizando rama remota: ${YELLOW}${branch[2]} ${NC}\n\n"
+
+	let cont+=1
+done
