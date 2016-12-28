@@ -37,6 +37,9 @@ HAND="\u261b"
 #     echo "Diverged"
 # fi
 
+folders=$(ls /home)
+echo $folders
+
 branches=$(git branch -a | grep remotes/aws | grep -v HEAD | grep -v master)
 
 cont=0

@@ -50,6 +50,7 @@ isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
 userip=$(hostname --ip-address)
 user=$(whoami)
+userHome=$(ls /home)
 clearForReal() { printf "\ec"; }
 
 ##############################################################
@@ -82,7 +83,7 @@ validateCertificate() {
 }
 
 validateConnection() {
-	if [[ $(echo $?) != 0 ]]; then
+	if [[ $1 != 0 && $1 != 1 ]]; then
 		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS,
 	verifique su conexión a internet...${NC}\n\n"
 		exit 1
@@ -122,7 +123,7 @@ logger() {
 
 	echo -e "\n -- $1 $2" >> $logPath
 	echo $3 >> $logPath
-	echo $4 >> $logPath
+	echo $4 "->" $5 >> $logPath
 	echo " --" >> $logPath
 }
 
@@ -213,7 +214,7 @@ elif [[ $option = "3" || $option = "4" ]]; then
 
 	array=($(ssh $AMAZON ls /home/ubuntu/git))
 
-	validateConnection
+	validateConnection $(echo $?)
 
 	cont=0
 	for item in ${array[*]}
@@ -269,12 +270,12 @@ if [[ $option = "2" ]]; then
 											git --bare init
 											git config core.sharedRepository true
 
-											$(declare -f); logger ADD ${repository} $userip  $user
+											$(declare -f); logger ADD ${repository} $userip  $user $userHome
 										else
 											echo 0
 										fi	
 									")
-	validateConnection
+	validateConnection $(echo $?)
 
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
@@ -355,7 +356,7 @@ elif [[ $option = "4" ]]; then
 				touch /home/ubuntu/git/.log
 			fi
 
-			$(declare -f); logger DELETE ${array[$repoSelec]} $userip  $user
+			$(declare -f); logger DELETE ${array[$repoSelec]} $userip  $user $userHome
 		fi	
 	"
 	clearForReal
