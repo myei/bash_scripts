@@ -63,6 +63,8 @@ printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
 printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
 printf "  [${CYAN}${BOLD}4${NC}] Eliminar repositorio \n"
+printf "  [${CYAN}${BOLD}5${NC}] Ver log \n"
+printf "  [${CYAN}${BOLD}6${NC}] Ver log en tiempo real \n"
 printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
@@ -127,7 +129,7 @@ logger() {
 	echo " --" >> $logPath
 }
 
-if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
+if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" && $option != "5" && $option != "6" ]]; then
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
@@ -241,7 +243,7 @@ fi
 #		N O M B R E   D E L   R E P O S I T O R I O
 ##############################################################
 
-if [[ $repository = "" ]]; then
+if [[ $repository = "" && $option == "2" ]]; then
 	validateCertificate
 	printf "\n${CYAN}${BOLD} Nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}) [$(basename $(pwd))]:${NC} "
 	read -p "" newRepo
@@ -363,6 +365,15 @@ elif [[ $option = "4" ]]; then
 	"
 	clearForReal
 	printf "\n${GREEN} ${BOLD}${array[$repoSelec]} eliminado... ${NC}\n\n"	
+	exit
+
+elif [[ $option = "5" ]]; then
+	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
+	ssh -t -t $AMAZON "cat /home/ubuntu/git/.log"
+	exit
+elif [[ $option = "6" ]]; then
+	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
+	ssh -t -t $AMAZON "tail -f /home/ubuntu/git/.log"
 	exit
 fi
 
