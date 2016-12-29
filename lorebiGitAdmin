@@ -372,7 +372,8 @@ elif [[ $option = "5" ]]; then
 	ssh -t -t $AMAZON "cat /home/ubuntu/git/.log"
 	exit
 elif [[ $option = "6" ]]; then
-	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
+	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n"
+	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
 	ssh -t -t $AMAZON "tail -f /home/ubuntu/git/.log"
 	exit
 fi
