@@ -49,7 +49,7 @@ isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
 userip=$(hostname --ip-address)
 user=$(whoami)
-userHome=$(ls /home)
+userHome=$(ls -m /home)
 clearForReal() { printf "\ec"; }
 
 ##############################################################
@@ -82,7 +82,7 @@ validateCertificate() {
 }
 
 validateConnection() {
-	if [[ $1 != 0 && $1 != 1 ]]; then
+	if [[ $1 != 0 ]]; then
 		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS,
 	verifique su conexión a internet...${NC}\n\n"
 		exit 1
@@ -120,7 +120,10 @@ pressEnter() {
 logger() {
 	logPath="/home/ubuntu/git/.log"
 
-	echo -e "\n -- $1 $2" >> $logPath
+	if [[ ! -f $logPath ]]; then
+		touch $logPath
+	fi
+	echo -e "\n -- $1 $2 $(date)" >> $logPath
 	echo $3 >> $logPath
 	echo $4 "->" $5 >> $logPath
 	echo " --" >> $logPath
@@ -192,11 +195,11 @@ elif [[ $option = "1" ]]; then
 
 	cp $certPath"LB-PMO.pem" /home/$user/.certs/
 	chmod 600 /home/$user/.certs/LB-PMO.pem
-	chown -R $user:users /home/$user/.certs
+	chown -R $user:$user /home/$user/.certs
 
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
-	$(ssh -t -t $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
 	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: 'lorebiGit'...${NC}\n"
 
 	pressEnter "salir"
@@ -213,7 +216,7 @@ elif [[ $option = "3" ]]; then
 
 	printf "${CYAN}\n ${BOLD}Buscando repositorios...${NF}\n\n${NC}"
 
-	array=($(ssh $AMAZON ls /home/ubuntu/git))
+	array=($(ssh -o ConnectTimeout=10 $AMAZON ls /home/ubuntu/git))
 
 	validateConnection $(echo $?)
 
@@ -240,7 +243,7 @@ fi
 #		N O M B R E   D E L   R E P O S I T O R I O
 ##############################################################
 
-if [[ $repository = "" ]]; then
+if [[ $repository = "" && $option = "2" ]]; then
 	validateCertificate
 	printf "\n${CYAN}${BOLD} Nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}) [$(basename $(pwd))]:${NC} "
 	read -p "" newRepo
@@ -261,7 +264,7 @@ if [[ $option = "2" ]]; then
 
 	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
-	creatingRepo=$(ssh -t -t $AMAZON "
+	creatingRepo=$(ssh -t -t -o ConnectTimeout=10 $AMAZON "
 										if [ ! -d /home/ubuntu/git/$repository ]; then
 											cd /home/ubuntu/git
 											mkdir '$repository'
@@ -271,11 +274,11 @@ if [[ $option = "2" ]]; then
 											git config core.sharedRepository true
 											
 											$(declare -f); logger ADD ${repository} $userip $user $userHome
+											echo 1
 										else
 											echo 0
 										fi	
 									")
-	validateConnection $(echo $?)
 
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
@@ -283,6 +286,9 @@ if [[ $option = "2" ]]; then
 
 	if [[ $(grep "0" <<< $creatingRepo) ]]; then
 		printf "\n${RED}${BOLD} Ese nombre de repositorio ya esta utilizado...${NC}\n\n"
+		exit 1
+	elif [[ $(grep "0" <<< $creatingRepo) = "" && $(grep "1" <<< $creatingRepo) = "" ]]; then
+		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS, verifique su conexión a internet...${NC}\n\n"
 		exit 1
 	fi
 
@@ -297,6 +303,7 @@ if [[ $option = "2" ]]; then
 	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
 	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: AWS's Server${NC}\n\n"
 	git push aws master
+
 elif [[ $option = "3" ]]; then
 
 	direc=$(pwd)"/"${repository:0:-4}
@@ -326,7 +333,7 @@ elif [[ $option = "3" ]]; then
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository $choice
-	$(ssh -t -t $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
 	cd $direc
 	git remote rename origin aws
 
@@ -343,8 +350,6 @@ elif [[ $option = "3" ]]; then
 
 		let cont+=1
 	done
-
-	
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"

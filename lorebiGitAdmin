@@ -50,7 +50,7 @@ isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
 userip=$(hostname --ip-address)
 user=$(whoami)
-userHome=$(ls /home)
+userHome=$(ls -m /home)
 clearForReal() { printf "\ec"; }
 
 ##############################################################
@@ -63,8 +63,8 @@ printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
 printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
 printf "  [${CYAN}${BOLD}4${NC}] Eliminar repositorio \n"
-printf "  [${CYAN}${BOLD}5${NC}] Ver log \n"
-printf "  [${CYAN}${BOLD}6${NC}] Ver log en tiempo real \n"
+printf "  [${CYAN}${BOLD}5${NC}] Histórico \n"
+printf "  [${CYAN}${BOLD}6${NC}] Log \n"
 printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
@@ -85,7 +85,7 @@ validateCertificate() {
 }
 
 validateConnection() {
-	if [[ $1 != 0 && $1 != 1 ]]; then
+	if [[ $1 != 0 ]]; then
 		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS,
 	verifique su conexión a internet...${NC}\n\n"
 		exit 1
@@ -123,7 +123,11 @@ pressEnter() {
 logger() {
 	logPath="/home/ubuntu/git/.log"
 
-	echo -e "\n -- $1 $2" >> $logPath
+	if [ ! -f $logPath ]; then
+		touch $logPath
+	fi
+
+	echo -e "\n -- $1 $2 $(date)" >> $logPath
 	echo $3 >> $logPath
 	echo $4 "->" $5 >> $logPath
 	echo " --" >> $logPath
@@ -199,7 +203,7 @@ elif [[ $option = "1" ]]; then
 
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
-	$(ssh -t -t $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
 	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: 'lorebiGitAdmin'...${NC}\n"
 
 	pressEnter "salir"
@@ -215,7 +219,7 @@ elif [[ $option = "3" || $option = "4" ]]; then
 
 	printf "${CYAN}\n ${BOLD}Buscando repositorios...${NF}\n\n${NC}"
 
-	array=($(ssh $AMAZON ls /home/ubuntu/git))
+	array=($(ssh -o ConnectTimeout=10 $AMAZON ls /home/ubuntu/git))
 
 	validateConnection $(echo $?)
 
@@ -243,7 +247,7 @@ fi
 #		N O M B R E   D E L   R E P O S I T O R I O
 ##############################################################
 
-if [[ $repository = "" && $option == "2" ]]; then
+if [[ $repository = "" && $option = "2" ]]; then
 	validateCertificate
 	printf "\n${CYAN}${BOLD} Nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}) [$(basename $(pwd))]:${NC} "
 	read -p "" newRepo
@@ -264,7 +268,7 @@ if [[ $option = "2" ]]; then
 
 	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
-	creatingRepo=$(ssh -t -t $AMAZON "
+	creatingRepo=$(ssh -t -t -o ConnectTimeout=10 $AMAZON "
 										if [ ! -d /home/ubuntu/git/$repository ]; then
 											cd /home/ubuntu/git
 											mkdir '$repository'
@@ -272,13 +276,13 @@ if [[ $option = "2" ]]; then
 											cd '$repository'
 											git --bare init
 											git config core.sharedRepository true
-
-											$(declare -f); logger ADD ${repository} $userip  $user $userHome
+											
+											$(declare -f); logger ADD ${repository} $userip $user $userHome
+											echo 1
 										else
 											echo 0
 										fi	
 									")
-	validateConnection $(echo $?)
 
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
@@ -286,6 +290,9 @@ if [[ $option = "2" ]]; then
 
 	if [[ $(grep "0" <<< $creatingRepo) ]]; then
 		printf "\n${RED}${BOLD} Ese nombre de repositorio ya esta utilizado...${NC}\n\n"
+		exit 1
+	elif [[ $(grep "0" <<< $creatingRepo) = "" && $(grep "1" <<< $creatingRepo) = "" ]]; then
+		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS, verifique su conexión a internet...${NC}\n\n"
 		exit 1
 	fi
 
@@ -330,7 +337,7 @@ elif [[ $option = "3" ]]; then
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository $choice
-	$(ssh -t -t $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
 	cd $direc
 	git remote rename origin aws
 
@@ -352,13 +359,9 @@ elif [[ $option = "4" ]]; then
 
 	confirm "${RED}" "Está seguro de eliminar ${I}'${array[$repoSelec]}'${NF}"
 
-	ssh -t -t $AMAZON "
+	ssh -t -t -o ConnectTimeout=10 $AMAZON "
 		if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
 			sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
-
-			if [ ! -f /home/ubuntu/git/.log ]; then
-				touch /home/ubuntu/git/.log
-			fi
 
 			$(declare -f); logger DELETE ${array[$repoSelec]} $userip  $user $userHome
 		fi	
@@ -369,12 +372,12 @@ elif [[ $option = "4" ]]; then
 
 elif [[ $option = "5" ]]; then
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
-	ssh -t -t $AMAZON "cat /home/ubuntu/git/.log"
+	ssh -t -t -o ConnectTimeout=10 $AMAZON "cat /home/ubuntu/git/.log"
 	exit
 elif [[ $option = "6" ]]; then
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n"
 	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
-	ssh -t -t $AMAZON "tail -f /home/ubuntu/git/.log"
+	ssh -t -t -o ConnectTimeout=10 $AMAZON "tail -f /home/ubuntu/git/.log"
 	exit
 fi
 
