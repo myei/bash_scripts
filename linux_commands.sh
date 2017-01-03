@@ -71,3 +71,6 @@
 
 -- Lectura y escritura de particiones ntfs --
 	pacman -S ntfs-3g
+
+-- Actualizar Keys Pacman --
+	pacman-key --refresh-keys
