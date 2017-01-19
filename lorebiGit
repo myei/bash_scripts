@@ -199,7 +199,7 @@ elif [[ $option = "1" ]]; then
 
 	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
 
-	$(ssh -t -t -o ConnectTimeout=10 $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
 	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: 'lorebiGit'...${NC}\n"
 
 	pressEnter "salir"
@@ -216,7 +216,7 @@ elif [[ $option = "3" ]]; then
 
 	printf "${CYAN}\n ${BOLD}Buscando repositorios...${NF}\n\n${NC}"
 
-	array=($(ssh -o ConnectTimeout=10 $AMAZON ls /home/ubuntu/git))
+	array=($(ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON ls /home/ubuntu/git))
 
 	validateConnection $(echo $?)
 
@@ -264,7 +264,7 @@ if [[ $option = "2" ]]; then
 
 	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
-	creatingRepo=$(ssh -t -t -o ConnectTimeout=10 $AMAZON "
+	creatingRepo=$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "
 										if [ ! -d /home/ubuntu/git/$repository ]; then
 											cd /home/ubuntu/git
 											mkdir '$repository'
@@ -333,7 +333,7 @@ elif [[ $option = "3" ]]; then
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
 	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository $choice
-	$(ssh -t -t -o ConnectTimeout=10 $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
 	cd $direc
 	git remote rename origin aws
 
