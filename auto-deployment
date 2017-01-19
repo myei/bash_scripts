@@ -1,0 +1,40 @@
+#!/bin/bash
+
+##############################################################
+#
+# 					Creado por: Manuel Gil
+#
+# Este script permite:
+#
+# - Este script esta siendo ejecutado cada 5 minutos en busca
+#   de actualizaciones para ser autodeployadas en cada uno de
+# 	los proyectos especificados en DIRS
+#
+##############################################################
+
+DIRS=('/var/www/html/RegistratioCard')
+
+for project in DIRS; do
+	cd $project
+	git remote update
+
+	UPSTREAM=${1:-'@{u}'}
+	LOCAL=$(git rev-parse @)
+	REMOTE=$(git rev-parse "$UPSTREAM")
+	BASE=$(git merge-base @ "$UPSTREAM")
+
+	if [ $LOCAL = $REMOTE ]; then
+	    echo "Up-to-date"
+	elif [ $LOCAL = $BASE ]; then
+
+	    echo "Need to pull"
+
+		git stash
+		git pull
+
+	elif [ $REMOTE = $BASE ]; then
+	    echo "Need to push"
+	else
+	    echo "Diverged"
+	fi
+done

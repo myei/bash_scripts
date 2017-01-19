@@ -37,16 +37,8 @@ HAND="\u261b"
 #     echo "Diverged"
 # fi
 
-folders=$(ls /home)
-echo $folders
+DIRS=('hola')
 
-branches=$(git branch -a | grep remotes/aws | grep -v HEAD | grep -v master)
-
-cont=0
-for remote in ${branches[*]}
-do
-	IFS='/' read -r -a branch <<< "$remote"
-	printf "\n${CYAN}${BOLD} Creando y actualizando rama remota: ${YELLOW}${branch[2]} ${NC}\n\n"
-
-	let cont+=1
+for i in ${DIRS[*]}; do
+	printf "item: $i \n"
 done
