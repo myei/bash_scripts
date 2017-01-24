@@ -75,6 +75,7 @@ read -n 1 option
 ##############################################################
 
 validateCertificate() {
+	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}"
 	if [ ! -f ~/.ssh/id_rsa ]; then
 		printf "\n\n${CYAN}${BOLD} Autenticando con el Ranchito's Server ${NC}\n\n"
 	    printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
@@ -82,7 +83,8 @@ validateCertificate() {
 	fi
 
 	validateCommand sshpass
-	sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT
+	sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
+	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 }
 
 validateConnection() {
@@ -139,7 +141,6 @@ validateCommand() {
 			fi
 		fi
 	fi
-	printf "\n\n${NC}"
 }
 
 logger() {
