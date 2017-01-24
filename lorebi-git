@@ -144,7 +144,7 @@ validateCommand() {
 }
 
 logger() {
-	logPath="$REPOS_PATH/.log"
+	logPath='/home/pmo/git/.log'
 
 	if [[ ! -f $logPath ]]; then
 		touch $logPath
