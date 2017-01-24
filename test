@@ -37,8 +37,8 @@ HAND="\u261b"
 #     echo "Diverged"
 # fi
 
-DIRS=('hola')
-
-for i in ${DIRS[*]}; do
-	printf "item: $i \n"
-done
+if [[ ! -f /usr/bin/dpkg ]]; then
+	echo 1
+else
+	echo 2
+fi
