@@ -70,6 +70,11 @@ printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF} ::\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Crear repositorio y enlazar \n"
 printf "  [${CYAN}${BOLD}2${NC}] Clonar repositorio \n"
+
+if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
+	printf "  [${CYAN}${BOLD}3${NC}] Registrar script (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
+fi
+
 printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
@@ -81,8 +86,8 @@ validateCertificate() {
 	if [ ! -f ~/.ssh/id_rsa ]; then
 		printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME ${NC}\n\n"
 	    printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
-		ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
-		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
+		sudo ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
+		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
 	fi
 
 	validateCommand sshpass
@@ -102,6 +107,7 @@ validateConnection() {
 saveScript() {
 	if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
 		if [[ -f /usr/bin/$SCRIPT_NAME || -L /usr/bin/$SCRIPT_NAME ]]; then
+			printf "\n\n"
 			sudo rm /usr/bin/$SCRIPT_NAME
 		fi
 		
@@ -138,7 +144,7 @@ pressEnter() {
 }
 
 validateCommand() {
-	if [[ $(ls /usr/bin/$1 | grep $1) = '' ]]; then
+	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
 		printf "\n\n${CYAN}${BOLD} Instalando paquete necesario..${NC}\n\n"
 
 		if [[ -f /usr/bin/dpkg ]]; then
@@ -154,7 +160,7 @@ validateCommand() {
 		fi
 	fi
 
-	if [[ $(ls /usr/bin/$1 | grep $1) = '' ]]; then
+	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
 		printf "\n${RED}${BOLD} El paquete ${WHITE}${BOLD}$1${RED}${BOLD} no se ha instalado y es ${WHITE}${BOLD}necesario${RED}${BOLD} para poder continuar... ${NC}"
 		exit
 		# validateCommand $1
@@ -167,15 +173,15 @@ logger() {
 	if [[ ! -f $logPath ]]; then
 		touch $logPath
 	fi
+	
 	echo -e "\n -- $1 $2 $(date)" >> $logPath
-	echo $3 >> $logPath
-	echo $4 "->" $5 >> $logPath
+	echo "    " $3 >> $logPath
+	echo "    " $4 $5 >> $logPath
 	echo " --" >> $logPath
 }
 
 
-saveScript
-if [[ $option != "1" && $option != "2" ]]; then
+if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "2" ]]; then
@@ -244,7 +250,7 @@ if [[ $option = "1" ]]; then
 											git --bare init
 											git config core.sharedRepository true
 											
-											$(declare -f); logger ADD ${repository} $userip $user $userHome
+											$(declare -f); logger ADD ${repository} $USERIP $USER $USERHOME
 											echo 1
 										else
 											echo 0
@@ -304,7 +310,7 @@ elif [[ $option = "2" ]]; then
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
 	git clone git+ssh://$SERVER:$PORT$REPOS_PATH$repository $choice
-	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $USERIP $USER $USERHOME");
 	cd $direc
 	git remote rename origin $REMOTE_NAME
 
@@ -321,6 +327,18 @@ elif [[ $option = "2" ]]; then
 
 		let cont+=1
 	done
+elif [[ $option = "3" ]]; then
+	saveScript
+
+	if [[ $? != "0" ]]; then
+		printf "\n${RED}${BOLD} Debe autenticarse correctamente...${NC}\n\n"
+		exit
+	else
+		printf "\n\n${GREEN}${BOLD} Ahora puedes ejecutarme donde quieras como: 'lorebiGit'${NC}\n"
+		pressEnter "volver al menú principal"
+		exec $(readlink -f "$0")
+	fi
+
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"

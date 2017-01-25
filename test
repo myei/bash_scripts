@@ -37,8 +37,22 @@ HAND="\u261b"
 #     echo "Diverged"
 # fi
 
-if [[ ! -f /usr/bin/dpkg ]]; then
-	echo 1
-else
-	echo 2
-fi
+
+USERIP=$(hostname --ip-address)
+USER=$(whoami)
+USERHOME=$(ls -m /home)
+
+logger() {
+	logPath='/home/mgil/test.txt'
+
+	if [[ ! -f $logPath ]]; then
+		touch $logPath
+	fi
+
+	echo -e "\n -- $1 $2 $(date)" >> $logPath
+	echo "    " $3 >> $logPath
+	echo "    " $4 $5 >> $logPath
+	echo " --" >> $logPath
+}
+# echo $USER
+logger 1 ${repository} $USERIP $USER $USERHOME

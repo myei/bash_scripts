@@ -85,7 +85,7 @@ validateCertificate() {
 		printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME ${NC}\n\n"
 	    printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
 		ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
-		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
+		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
 	fi
 
 	validateCommand sshpass
@@ -170,9 +170,10 @@ logger() {
 	if [[ ! -f $logPath ]]; then
 		touch $logPath
 	fi
+	
 	echo -e "\n -- $1 $2 $(date)" >> $logPath
-	echo $3 >> $logPath
-	echo $4 "->" $5 >> $logPath
+	echo "    " $3 >> $logPath
+	echo "    " $4 $5 >> $logPath
 	echo " --" >> $logPath
 }
 
@@ -246,7 +247,7 @@ if [[ $option = "1" ]]; then
 											git --bare init
 											git config core.sharedRepository true
 											
-											$(declare -f); logger ADD ${repository} $userip $user $userHome
+											$(declare -f); logger ADD ${repository} $USERIP $USER $USERHOME
 											echo 1
 										else
 											echo 0
@@ -306,7 +307,7 @@ elif [[ $option = "2" ]]; then
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
 	git clone git+ssh://$SERVER:$PORT$REPOS_PATH$repository $choice
-	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
+	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $USERIP $USER $USERHOME");
 	cd $direc
 	git remote rename origin $REMOTE_NAME
 
