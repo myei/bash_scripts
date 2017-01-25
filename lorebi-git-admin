@@ -45,12 +45,21 @@ BAD='\u2718'
 ARROW='\u27a1'
 HAND="\u261b"
 
-AMAZON='ubuntu@54.204.107.45'
+# V A R
 isNumber="^-?[0-9]+([.][0-9]+)?$"
 repoSelected=""
-userip=$(hostname --ip-address)
-user=$(whoami)
-userHome=$(ls -m /home)
+
+# C O N F I G U R A C I Ó N
+SERVER_NAME="Ranchito's Server"
+SERVER='pmo@git.lorebi.com'
+PORT='2000'
+REPOS_PATH='/home/pmo/git/'
+REMOTE_NAME='ranchito'
+USERIP=$(hostname --ip-address)
+USER=$(whoami)
+USERHOME=$(ls -m /home)
+SCRIPT_NAME='lorebiGitAdmin'
+
 clearForReal() { printf "\ec"; }
 
 ##############################################################
@@ -59,36 +68,47 @@ clearForReal() { printf "\ec"; }
 clearForReal
 printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF} ::\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
-printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
-printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
-printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
-printf "  [${CYAN}${BOLD}4${NC}] Eliminar repositorio \n"
-printf "  [${CYAN}${BOLD}5${NC}] Histórico \n"
-printf "  [${CYAN}${BOLD}6${NC}] Log \n"
+printf "  [${CYAN}${BOLD}1${NC}] Crear repositorio y enlazar \n"
+printf "  [${CYAN}${BOLD}2${NC}] Clonar repositorio \n"
+printf "  [${CYAN}${BOLD}3${NC}] Eliminar repositorio \n"
+printf "  [${CYAN}${BOLD}4${NC}] Histórico \n"
+printf "  [${CYAN}${BOLD}5${NC}] Log \n"
 printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
 # clearForReal
 
-##############################################################
-#				A U T E N T I C A C I Ó N
-##############################################################
-
 validateCertificate() {
 	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}"
-	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) = "" ]]; then
-		printf "${RED}${BOLD} ${BAD}\n\n No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
-		exit 1
+	if [ ! -f ~/.ssh/id_rsa ]; then
+		printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME ${NC}\n\n"
+	    printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
+		ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
+		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
 	fi
+
+	validateCommand sshpass
+	sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
+	validateConnection $?
 	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 }
 
 validateConnection() {
 	if [[ $1 != 0 ]]; then
-		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS,
+		printf "\n${RED}${BOLD} No se pudo conectar con el servidor $SERVER_NAME,
 	verifique su conexión a internet...${NC}\n\n"
 		exit 1
+	fi
+}
+
+saveScript() {
+	if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
+		if [[ -f /usr/bin/$SCRIPT_NAME || -L /usr/bin/$SCRIPT_NAME ]]; then
+			sudo rm /usr/bin/$SCRIPT_NAME
+		fi
+		
+		sudo cp $(readlink -f $0) /usr/bin/$SCRIPT_NAME
 	fi
 }
 
@@ -120,98 +140,48 @@ pressEnter() {
 	read -p ""
 }
 
-logger() {
-	logPath="/home/ubuntu/git/.log"
+validateCommand() {
+	if [[ $(ls /usr/bin/$1 | grep $1) = '' ]]; then
+		printf "\n\n${CYAN}${BOLD} Instalando paquete necesario..${NC}\n\n"
 
-	if [ ! -f $logPath ]; then
-		touch $logPath
+		if [[ -f /usr/bin/dpkg ]]; then
+			sudo apt-get install $1 -y
+		elif [[ -f /usr/bin/pacman ]]; then
+			sudo pacman -S $1 --noconfirm
+		elif [[ -f /usr/bin/yum ]]; then
+			sudo yum -y install $1
+		else
+			printf "\n\n${YELLOW}${BOLD} Disculpa, no conozco tu manejador de paquetes, por favor ingresa el equivalente al siguiente comando en tu sistema: '${CYAN}${BOLD}apt-get install $1${YELLOW}${BOLD}' ${NC}${BOLD}\n\n"
+			read -p " " comando
+			sudo $comando
+		fi
 	fi
 
+	if [[ $(ls /usr/bin/$1 | grep $1) = '' ]]; then
+		printf "\n${RED}${BOLD} El paquete ${WHITE}${BOLD}$1${RED}${BOLD} no se ha instalado y es ${WHITE}${BOLD}necesario${RED}${BOLD} para poder continuar... ${NC}"
+		exit
+		# validateCommand $1
+	fi
+}
+
+logger() {
+	logPath='/home/pmo/git/.log'
+
+	if [[ ! -f $logPath ]]; then
+		touch $logPath
+	fi
 	echo -e "\n -- $1 $2 $(date)" >> $logPath
 	echo $3 >> $logPath
 	echo $4 "->" $5 >> $logPath
 	echo " --" >> $logPath
 }
 
-if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" && $option != "5" && $option != "6" ]]; then
+saveScript
+validateCertificate
+if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" && $option != "5" ]]; then
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
-elif [[ $option = "1" ]]; then
-
-	##############################################################
-	#		V A L I D A C I O N E S   G E N E R A L E S
-	##############################################################
-
-	printf "\n\n"
-	if [ $EUID -ne 0 ]; then
-		printf "${RED}${BOLD} Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
-		exit 1
-	fi
-
-	if [[ $(grep -lir "LB-PMO.pem" /etc/ssh/ssh_config) != "" ]]; then
-		confirm "${YELLOW}" "Parece que ya te autenticaste... Quieres volver a hacerlo para solucionar algún problema"
-		printf "\n"
-	fi
-
-	foundIt=false
-	while [[ $foundIt = false ]]; do
-		if [[ ! -f $certPath"LB-PMO.pem" ]]; then
-			printf "${YELLOW}${BOLD} No encontré el certificado LB-PMO.pem, dime donde está?: ${NC}"
-			read -p "" -e certPath
-			certPath=$certPath"/"
-			printf "\n"
-		else
-			foundIt=true
-		fi
-	done
-
-	printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
-	read -p "" user
-	if [[ ! -d /home/$user || $user = "" ]]; then
-		printf "\n${RED}${BOLD} Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
-		exit 1
-	fi
-	
-	##############################################################
-	#	  R E G I S T R A N D O   E L   C E R T I F I C A D O
-	##############################################################
-
-	if [ -f /home/$user/.lorebiGitAdmin ]; then
-		rm /home/$user/.lorebiGitAdmin
-	fi
-
-	if [ -L /usr/bin/lorebiGitAdmin ]; then
-		rm /usr/bin/lorebiGitAdmin
-	fi
-
-	cp $(readlink -f $0) /home/$user/.lorebiGitAdmin
-	ln -s /home/$user/.lorebiGitAdmin /usr/bin/lorebiGitAdmin
-
-	printf "\n${CYAN}${BOLD} Autenticando...${NC}\n"
-
-	if [ ! -d /home/$user/.certs ]; then
-		mkdir /home/$user/.certs
-	fi
-
-	if [ ! -f /etc/ssh/ssh_config ]; then
-		touch /etc/ssh/ssh_config
-	fi
-
-	cp $certPath"LB-PMO.pem" /home/$user/.certs/
-	chmod 600 /home/$user/.certs/LB-PMO.pem
-	chown -R $user:$user /home/$user/.certs
-
-	echo -e "\n IdentityFile /home/$user/.certs/LB-PMO.pem" >> /etc/ssh/ssh_config
-
-	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "$(declare -f); logger AUTHENTICATE ${repository} $userip $user $userHome");
-	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: 'lorebiGitAdmin'...${NC}\n"
-
-	pressEnter "salir"
-	clearForReal
-	exit
-
-elif [[ $option = "3" || $option = "4" ]]; then
-	validateCertificate
+elif [[ $option = "2" || $option = "3" ]]; then
 
 	##############################################################
 	#	  L I S T A D O   D E   R E P O S I T O R I O S
@@ -219,7 +189,7 @@ elif [[ $option = "3" || $option = "4" ]]; then
 
 	printf "${CYAN}\n ${BOLD}Buscando repositorios...${NF}\n\n${NC}"
 
-	array=($(ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON ls /home/ubuntu/git))
+	array=($(ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT ls $REPOS_PATH))
 
 	validateConnection $(echo $?)
 
@@ -248,7 +218,6 @@ fi
 ##############################################################
 
 if [[ $repository = "" && $option = "2" ]]; then
-	validateCertificate
 	printf "\n${CYAN}${BOLD} Nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}) [$(basename $(pwd))]:${NC} "
 	read -p "" newRepo
 	printf "\n"
@@ -258,7 +227,7 @@ if [[ $repository = "" && $option = "2" ]]; then
 	repository=$newRepo".git"
 fi 
 
-if [[ $option = "2" ]]; then
+if [[ $option = "1" ]]; then
 
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
@@ -268,9 +237,9 @@ if [[ $option = "2" ]]; then
 
 	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
 
-	creatingRepo=$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "
-										if [ ! -d /home/ubuntu/git/$repository ]; then
-											cd /home/ubuntu/git
+	creatingRepo=$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "
+										if [ ! -d $REPOS_PATH$repository ]; then
+											cd $REPOS_PATH
 											mkdir '$repository'
 
 											cd '$repository'
@@ -292,7 +261,7 @@ if [[ $option = "2" ]]; then
 		printf "\n${RED}${BOLD} Ese nombre de repositorio ya esta utilizado...${NC}\n\n"
 		exit 1
 	elif [[ $(grep "0" <<< $creatingRepo) = "" && $(grep "1" <<< $creatingRepo) = "" ]]; then
-		printf "\n${RED}${BOLD} No se pudo conectar con el servidor AWS, verifique su conexión a internet...${NC}\n\n"
+		printf "\n${RED}${BOLD} No se pudo conectar con el servidor $SERVER_NAME, verifique su conexión a internet...${NC}\n\n"
 		exit 1
 	fi
 
@@ -302,13 +271,13 @@ if [[ $option = "2" ]]; then
 	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n"
 	git add --all
 	printf "\n${CYAN}${BOLD} Creando el commit...${NC}\n\n"
-	git commit -m "INITIAL COMMIT TO AWS'S SERVER"
-	git remote remove aws
-	git remote add aws "git+ssh://$AMAZON/home/ubuntu/git/$repository"
-	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: AWS's Server${NC}\n\n"
-	git push aws master
+	git commit -m "INITIAL COMMIT TO $SERVER_NAME "
+	git remote remove $REMOTE_NAME
+	git remote add $REMOTE_NAME "git+ssh://$SERVER:$PORT$REPOS_PATH$repository"
+	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: $SERVER_NAME ${NC}\n\n"
+	git push $REMOTE_NAME master
 
-elif [[ $option = "3" ]]; then
+elif [[ $option = "2" ]]; then
 
 	direc=$(pwd)"/"${repository:0:-4}
 	printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$direc'${BOLD}? [Y/n/o]: ${WHITE}"
@@ -336,14 +305,14 @@ elif [[ $option = "3" ]]; then
 
 	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
 
-	git clone git+ssh://$AMAZON/home/ubuntu/git/$repository $choice
-	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
+	git clone git+ssh://$SERVER:$PORT$REPOS_PATH$repository $choice
+	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $userip $user $userHome");
 	cd $direc
-	git remote rename origin aws
+	git remote rename origin $REMOTE_NAME
 
 	# C R E A N D O   Y   A C T U A L I Z A N D O   
 	# T O D A S   L A S   R A M A S   R E M O T A S
-	branches=$(git branch -a | grep remotes/aws | grep -v HEAD | grep -v master)
+	branches=$(git branch -a | grep remotes/$REMOTE_NAME | grep -v HEAD | grep -v master)
 
 	cont=0
 	for remote in ${branches[*]}
@@ -355,13 +324,13 @@ elif [[ $option = "3" ]]; then
 		let cont+=1
 	done
 
-elif [[ $option = "4" ]]; then
+elif [[ $option = "3" ]]; then
 
 	confirm "${RED}" "Está seguro de eliminar ${I}'${array[$repoSelec]}'${NF}"
 
-	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "
-		if [ -d /home/ubuntu/git/${array[$repoSelec]} ]; then
-			sudo rm -r /home/ubuntu/git/${array[$repoSelec]}
+	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "
+		if [ -d $REPOS_PATH${array[$repoSelec]} ]; then
+			sudo rm -r $REPOS_PATH${array[$repoSelec]}
 
 			$(declare -f); logger DELETE ${array[$repoSelec]} $userip  $user $userHome
 		fi	
@@ -370,19 +339,19 @@ elif [[ $option = "4" ]]; then
 	printf "\n${GREEN} ${BOLD}${array[$repoSelec]} eliminado... ${NC}\n\n"	
 	exit
 
-elif [[ $option = "5" ]]; then
+elif [[ $option = "4" ]]; then
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
-	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "cat /home/ubuntu/git/.log"
+	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "cat $REPOS_PATH.log"
 	exit
-elif [[ $option = "6" ]]; then
+elif [[ $option = "5" ]]; then
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n"
 	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
-	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $AMAZON "tail -f /home/ubuntu/git/.log"
+	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "tail -f $REPOS_PATH.log"
 	exit
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
-	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a 'aws' (git push aws <branch>)...${NC}\n\n"
+	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a '$REMOTE_NAME' (git push $REMOTE_NAME <branch>)...${NC}\n\n"
 
 	pressEnter "salir"
 	clearForReal
