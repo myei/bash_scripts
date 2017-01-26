@@ -82,11 +82,11 @@ read -n 1 option
 # clearForReal
 
 validateCertificate() {
-	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}"
+	printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
 	if [ ! -f ~/.ssh/id_rsa ]; then
-		printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME ${NC}\n\n"
+		printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME... ${NC}"
 	    printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
-		sudo ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
+		ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
 		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
 	fi
 
@@ -181,7 +181,10 @@ logger() {
 }
 
 
-if [[ $option != "1" && $option != "2" && $option != "3" ]]; then
+if [[($(echo $(readlink -f $0) | grep '/usr/bin/') != '' && $option = "3")]];then
+	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
+	exit
+elif [[ $option != "1" && $option != "2" && $option != "3" ]]; then
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "2" ]]; then
