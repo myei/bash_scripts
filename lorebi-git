@@ -278,7 +278,7 @@ if [[ $option = "1" ]]; then
 	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n"
 	git add --all
 	printf "\n${CYAN}${BOLD} Creando el commit...${NC}\n\n"
-	git commit -m "INITIAL COMMIT TO $SERVER_NAME "
+	git commit -m "Saving in: $SERVER_NAME "
 	git remote remove $REMOTE_NAME
 	git remote add $REMOTE_NAME "git+ssh://$SERVER:$PORT$REPOS_PATH$repository"
 	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: $SERVER_NAME ${NC}\n\n"
