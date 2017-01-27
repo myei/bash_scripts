@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# C O L O R S
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+PURPLE='\e[95m'
+WHITE='\e[97m'
+YELLOW='\e[93m'
+NC='\033[0m'
+
+# F O N T S
+BOLD='\e[1m'
+NF='\e[0m'
+BLINK='\e[5m'
+I='\e[3m'
+S='\e[4m'
+
+# C O N F I G U R A C I Ó N
+SCRIPT_NAME='pem-generate'
+NAME=$(whoami)
+FILE_PATH="/home/${NAME}/"
+
+confirm() {
+	printf "\n $1${BOLD}$2$1${BOLD}? [Y/n]: ${WHITE}"
+	read -n 1 confirm
+	printf "${NC}\n"
+
+	if [[ $confirm != "Y" && $confirm != "y" && $confirm != "" ]]; then
+		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
+		exit 1
+	fi
+}
+
+validatePackage() {
+	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
+		printf "\n\n${CYAN}${BOLD} Instalando paquete necesario..${NC}\n\n"
+
+		if [[ -f /usr/bin/dpkg ]]; then
+			sudo apt-get install $1 -y
+		elif [[ -f /usr/bin/pacman ]]; then
+			sudo pacman -S $1 --noconfirm
+		elif [[ -f /usr/bin/yum ]]; then
+			sudo yum -y install $1
+		else
+			printf "\n\n${YELLOW}${BOLD} Disculpa, no conozco tu manejador de paquetes, por favor ingresa el equivalente al siguiente comando en tu sistema: '${CYAN}${BOLD}apt-get install $1${YELLOW}${BOLD}' ${NC}${BOLD}\n\n"
+			read -p " " comando
+			sudo $comando
+		fi
+	fi
+
+	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
+		printf "\n${RED}${BOLD} El paquete ${WHITE}${BOLD}$1${RED}${BOLD} no se ha instalado y es ${WHITE}${BOLD}necesario${RED}${BOLD} para poder continuar... ${NC}"
+		exit
+		# validatePackage $1
+	fi
+}
+
+saveScript() {
+	if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
+		if [[ -f /usr/bin/$SCRIPT_NAME || -L /usr/bin/$SCRIPT_NAME ]]; then
+			printf "\n\n"
+			sudo rm /usr/bin/$SCRIPT_NAME
+		fi
+		
+		sudo cp $(readlink -f $0) /usr/bin/$SCRIPT_NAME
+	fi
+}
+
+clearForReal() { printf "\ec"; }
+clearForReal
+
+# O B T E N I E N D O   P A R Á M E T R O S
+while [[ $# -gt 1 ]]
+do
+key="$1"
+
+case $key in
+    -n|--name)
+    NAME="$2"
+    shift
+    ;;
+    -p|--filepath)
+    FILE_PATH="$2"
+    shift
+    ;;
+    *)
+    ;;
+esac
+shift
+done
+
+confirm "${YELLOW}" "Está seguro de generar el $NAME.pem en $FILE_PATH"
+
+validatePackage openssl
+
+if [[ ! -f ~/.ssh/id_rsa ]]; then
+	printf "\n\n ${CYAN}${BOLD}Generando key... ${WHITE} "
+	ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
+fi
+if [[ ! -d $FILE_PATH ]]; then
+	printf "\n\n ${RED}${BOLD}'$FILE_PATH' no existe... ${WHITE} "
+	exit
+fi
+
+printf "\n\n ${CYAN}${BOLD}Generando pem... ${WHITE} "
+openssl rsa -in ~/.ssh/id_rsa -outform pem > $FILE_PATH$NAME.pem
+
+printf "\n\n ${CYAN}${BOLD}Autorizando pem... ${WHITE} "
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+printf "\n\n ${GREEN}${BOLD}Generado en: $FILE_PATH${NAME}.pem ${WHITE} "
+
+saveScript
