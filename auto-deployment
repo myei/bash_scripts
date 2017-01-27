@@ -12,9 +12,9 @@
 #
 ##############################################################
 
-DIRS=('/var/www/html/RegistratioCard')
+DIRS=('/home/mgil/dev/RegistrationCard')
 
-for project in DIRS; do
+for project in $DIRS; do
 	cd $project
 	git remote update
 

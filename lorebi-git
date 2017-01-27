@@ -190,7 +190,7 @@ logger() {
 }
 
 
-if [[ ($(echo $(readlink -f $0) | grep '/usr/bin/') != '' && $option = "4")]]; then
+if [[ ($(echo $(readlink -f $0) | grep '/usr/bin/') != '' && $option = "4") ]]; then
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit
 elif [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
