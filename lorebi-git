@@ -67,7 +67,7 @@ clearForReal() { printf "\ec"; }
 ##############################################################
 
 clearForReal
-printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF} ::\n\n"
+printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}${SCRIPT_NAME}${NF} ::\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
 printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
 printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
@@ -190,7 +190,7 @@ logger() {
 }
 
 
-if [[($(echo $(readlink -f $0) | grep '/usr/bin/') != '' && $option = "4")]];then
+if [[ ($(echo $(readlink -f $0) | grep '/usr/bin/') != '' && $option = "4")]]; then
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit
 elif [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]]; then
@@ -257,7 +257,7 @@ elif [[ $option = "1" ]]; then
 	echo -e "\n IdentityFile /home/$user/.certs/$CREDENCIAL" >> /etc/ssh/ssh_config
 
 	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
-	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: 'lorebiGit'...${NC}\n"
+	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'...${NC}\n"
 
 	pressEnter "salir"
 	# exec $(readlink -f "$0")
@@ -414,7 +414,7 @@ elif [[ $option = "4" ]]; then
 		printf "\n${RED}${BOLD} Debe autenticarse correctamente...${NC}\n\n"
 		exit
 	else
-		printf "\n\n${GREEN}${BOLD} Ahora puedes ejecutarme donde quieras como: 'lorebiGit'${NC}\n"
+		printf "\n\n${GREEN}${BOLD} Ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'${NC}\n"
 		pressEnter "volver al menú principal"
 		exec $(readlink -f "$0")
 	fi

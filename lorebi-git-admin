@@ -59,6 +59,7 @@ USERIP=$(hostname --ip-address)
 USER=$(whoami)
 USERHOME=$(ls -m /home)
 SCRIPT_NAME='lorebiGitAdmin'
+CREDENCIAL='LB-GIT.pem'
 
 clearForReal() { printf "\ec"; }
 
@@ -66,13 +67,19 @@ clearForReal() { printf "\ec"; }
 #						M E N Ú
 ##############################################################
 clearForReal
-printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}LorebiGit${NF} ::\n\n"
+printf "\n 	  :: Bienvenido al ${BOLD}${PURPLE}${SCRIPT_NAME}${NF} ::\n\n"
 printf " ${CYAN}${BOLD}Que acción desea realizar?${NF} \n\n${NC}"
-printf "  [${CYAN}${BOLD}1${NC}] Crear repositorio y enlazar \n"
-printf "  [${CYAN}${BOLD}2${NC}] Clonar repositorio \n"
-printf "  [${CYAN}${BOLD}3${NC}] Eliminar repositorio \n"
-printf "  [${CYAN}${BOLD}4${NC}] Histórico \n"
-printf "  [${CYAN}${BOLD}5${NC}] Log \n"
+printf "  [${CYAN}${BOLD}1${NC}] Autenticarme con el Servidor [${RED}${BOLD}root${NC}] (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
+printf "  [${CYAN}${BOLD}2${NC}] Crear repositorio y enlazar \n"
+printf "  [${CYAN}${BOLD}3${NC}] Clonar repositorio \n"
+printf "  [${CYAN}${BOLD}4${NC}] Eliminar repositorio \n"
+printf "  [${CYAN}${BOLD}5${NC}] Histórico \n"
+printf "  [${CYAN}${BOLD}6${NC}] Log \n"
+
+if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
+	printf "  [${CYAN}${BOLD}7${NC}] Registrar script (${BLUE}${BOLD}Sólo la primera vez${NC})\n"
+fi
+
 printf "  [${CYAN}${BOLD}x${NC}] Salir \n"
 
 printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
@@ -80,18 +87,25 @@ read -n 1 option
 # clearForReal
 
 validateCertificate() {
-	printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
-	if [ ! -f ~/.ssh/id_rsa ]; then
-		printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME... ${NC}"
-	    printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
-		ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
-		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
+	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}"
+	if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) = "" ]]; then
+		printf "${RED}${BOLD} ${BAD}\n\n No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
+		exit 1
 	fi
-
-	validateCommand sshpass
-	sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
-	validateConnection $?
 	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
+
+	# printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
+	# if [ ! -f ~/.ssh/id_rsa ]; then
+	# 	printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME... ${NC}"
+	#     printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
+	# 	ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
+	# 	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
+	# fi
+
+	# validateCommand sshpass
+	# sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
+	# validateConnection $?
+	# printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 }
 
 validateConnection() {
@@ -177,12 +191,81 @@ logger() {
 	echo " --" >> $logPath
 }
 
-saveScript
-validateCertificate
-if [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" && $option != "5" ]]; then
+if [[ ($(echo $(readlink -f $0) | grep '/usr/bin/') != '' && $option = "7")]]; then
+	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
+	exit
+elif [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" && $option != "5" && $option != "6" && $option != "7" ]]; then
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
-elif [[ $option = "2" || $option = "3" ]]; then
+elif [[ $option = "1" ]]; then
+
+	##############################################################
+	#		V A L I D A C I O N E S   G E N E R A L E S
+	##############################################################
+
+	printf "\n\n"
+	if [ $EUID -ne 0 ]; then
+		printf "${RED}${BOLD} Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
+		exit 1
+	fi
+
+	if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) != "" ]]; then
+		confirm "${YELLOW}" "Parece que ya te autenticaste... Quieres volver a hacerlo para solucionar algún problema"
+		printf "\n"
+	fi
+
+	foundIt=false
+	while [[ $foundIt = false ]]; do
+		if [[ ! -f $certPath$CREDENCIAL ]]; then
+			printf "${YELLOW}${BOLD} No encontré el certificado $CREDENCIAL, dime donde está?: ${NC}"
+			read -p "" -e certPath
+			certPath=$certPath"/"
+			printf "\n"
+		else
+			foundIt=true
+		fi
+	done
+
+	printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
+	read -p "" user
+	if [[ ! -d /home/$user || $user = "" ]]; then
+		printf "\n${RED}${BOLD} Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
+		exit 1
+	fi
+	
+	saveScript
+
+	printf "\n${CYAN}${BOLD} Autenticando...${NC}\n"
+
+	if [ ! -d /home/$user/.certs ]; then
+		mkdir /home/$user/.certs
+	fi
+
+	if [ ! -f /etc/ssh/ssh_config ]; then
+		touch /etc/ssh/ssh_config
+	fi
+
+	cp $certPath$CREDENCIAL /home/$user/.certs/
+	chmod 600 /home/$user/.certs/$CREDENCIAL
+
+	if [[ -f /usr/bin/dpkg ]]; then
+		chown -R $user:$user /home/$user/.certs
+	elif [[ -f /usr/bin/pacman ]]; then
+		chown -R $user:users /home/$user/.certs
+	fi
+
+
+	echo -e "\n IdentityFile /home/$user/.certs/$CREDENCIAL" >> /etc/ssh/ssh_config
+
+	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
+	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'...${NC}\n"
+
+	pressEnter "salir"
+	# exec $(readlink -f "$0")
+	clearForReal
+	exit
+
+elif [[ $option = "3" || $option = "4" ]]; then
 
 	##############################################################
 	#	  L I S T A D O   D E   R E P O S I T O R I O S
@@ -228,7 +311,7 @@ if [[ $repository = "" && $option = "2" ]]; then
 	repository=$newRepo".git"
 fi 
 
-if [[ $option = "1" ]]; then
+if [[ $option = "2" ]]; then
 
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
@@ -278,7 +361,7 @@ if [[ $option = "1" ]]; then
 	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: $SERVER_NAME ${NC}\n\n"
 	git push $REMOTE_NAME master
 
-elif [[ $option = "2" ]]; then
+elif [[ $option = "3" ]]; then
 
 	direc=$(pwd)"/"${repository:0:-4}
 	printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$direc'${BOLD}? [Y/n/o]: ${WHITE}"
@@ -325,7 +408,7 @@ elif [[ $option = "2" ]]; then
 		let cont+=1
 	done
 
-elif [[ $option = "3" ]]; then
+elif [[ $option = "4" ]]; then
 
 	confirm "${RED}" "Está seguro de eliminar ${I}'${array[$repoSelec]}'${NF}"
 
@@ -340,15 +423,27 @@ elif [[ $option = "3" ]]; then
 	printf "\n${GREEN} ${BOLD}${array[$repoSelec]} eliminado... ${NC}\n\n"	
 	exit
 
-elif [[ $option = "4" ]]; then
+elif [[ $option = "5" ]]; then
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "cat $REPOS_PATH.log"
 	exit
-elif [[ $option = "5" ]]; then
+elif [[ $option = "6" ]]; then
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n"
 	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "tail -f $REPOS_PATH.log"
 	exit
+elif [[ $option = "7" ]]; then
+	saveScript
+
+	if [[ $? != "0" ]]; then
+		printf "\n${RED}${BOLD} Debe autenticarse correctamente...${NC}\n\n"
+		exit
+	else
+		printf "\n\n${GREEN}${BOLD} Ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'${NC}\n"
+		pressEnter "volver al menú principal"
+		exec $(readlink -f "$0")
+	fi
+
 fi
 
 	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
