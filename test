@@ -22,37 +22,17 @@ BAD='\u2718'
 ARROW='\u27a1'
 HAND="\u261b"
 
-# UPSTREAM=${1:-'@{u}'}
-# LOCAL=$(git rev-parse @)
-# REMOTE=$(git rev-parse "$UPSTREAM")
-# BASE=$(git merge-base @ "$UPSTREAM")
+(
+		echo "10" ; sleep 1
+		echo "# Actualizando los registros de los correos" ; sleep 1
+		echo "20" ; sleep 1
+		echo "# Reiniciando las tareas de cron" ; sleep 1
+		echo "50" ; sleep 1
+		echo "Esta linea se ignorará" ; sleep 1
+		echo "75" ; sleep 1
+		echo "# Reiniciando el sistema" ; sleep 1
+		echo "100" ; sleep 1
+	) |
+	zenity --progress title="Actualizando los registros del sistema" text="Rastreando los registros de los correos..." percentage=0
 
-# if [ $LOCAL = $REMOTE ]; then
-#     echo "Up-to-date"
-# elif [ $LOCAL = $BASE ]; then
-#     echo "Need to pull"
-# elif [ $REMOTE = $BASE ]; then
-#     echo "Need to push"
-# else
-#     echo "Diverged"
-# fi
-
-
-USERIP=$(hostname --ip-address)
-USER=$(whoami)
-USERHOME=$(ls -m /home)
-
-logger() {
-	logPath='/home/mgil/test.txt'
-
-	if [[ ! -f $logPath ]]; then
-		touch $logPath
-	fi
-
-	echo -e "\n -- $1 $2 $(date)" >> $logPath
-	echo "    " $3 >> $logPath
-	echo "    " $4 $5 >> $logPath
-	echo " --" >> $logPath
-}
-# echo $USER
-logger 1 ${repository} $USERIP $USER $USERHOME
+	zenity --list --title="Seleccione repositorio" --column="Nombre" --width="600" --height="600" $text
