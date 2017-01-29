@@ -284,7 +284,6 @@ elif [[ $option = "3" || $option = "4" ]]; then
 		let cont+=1
 	done
 
-
 	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${WHITE} "
 	read -p "" repoSelec
 	printf "\n"
@@ -349,6 +348,7 @@ if [[ $option = "2" ]]; then
 		exit 1
 	fi
 
+	notify-send $SCRIPT_NAME "$repository creeado exitosamente"
 	printf "\n${GREEN}${BOLD} Repositorio creado...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
 	git init
@@ -420,6 +420,7 @@ elif [[ $option = "4" ]]; then
 		fi	
 	"
 	clearForReal
+	notify-send $SCRIPT_NAME "${array[$repoSelec]} eliminado"
 	printf "\n${GREEN} ${BOLD}${array[$repoSelec]} eliminado... ${NC}\n\n"	
 	exit
 
@@ -429,6 +430,7 @@ elif [[ $option = "5" ]]; then
 	exit
 elif [[ $option = "6" ]]; then
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n"
+	notify-send $SCRIPT_NAME "Presione Ctrl + c para salir..."
 	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "tail -f $REPOS_PATH.log"
 	exit
@@ -436,6 +438,7 @@ elif [[ $option = "7" ]]; then
 	saveScript
 
 	if [[ $? != "0" ]]; then
+		notify-send $SCRIPT_NAME "Debe autenticarse correctamente!"
 		printf "\n${RED}${BOLD} Debe autenticarse correctamente...${NC}\n\n"
 		exit
 	else

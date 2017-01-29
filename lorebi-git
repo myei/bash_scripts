@@ -349,6 +349,7 @@ if [[ $option = "1" ]]; then
 		exit 1
 	fi
 
+	notify-send $SCRIPT_NAME "$repository creeado exitosamente"
 	printf "\n${GREEN}${BOLD} Repositorio creado...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
 	git init
