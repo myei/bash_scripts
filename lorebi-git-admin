@@ -275,7 +275,7 @@ elif [[ $option = "3" || $option = "4" ]]; then
 
 	array=($(ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT ls $REPOS_PATH))
 
-	validateConnection $(echo $?)
+	validateConnection $?
 
 	cont=0
 	for item in ${array[*]}
