@@ -268,6 +268,7 @@ elif [[ $option = "1" ]]; then
 
 elif [[ $option = "3" || $option = "4" ]]; then
 	validatePackage git
+	validateCertificate
 
 	##############################################################
 	#	  L I S T A D O   D E   R E P O S I T O R I O S
@@ -304,6 +305,7 @@ fi
 
 if [[ $repository = "" && $option = "2" ]]; then
 	validatePackage git
+	validateCertificate
 	
 	printf "\n${CYAN}${BOLD} Nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}) [$(basename $(pwd))]:${NC} "
 	read -p "" newRepo
@@ -429,10 +431,12 @@ elif [[ $option = "4" ]]; then
 	exit
 
 elif [[ $option = "5" ]]; then
+	validateCertificate
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "cat $REPOS_PATH.log"
 	exit
 elif [[ $option = "6" ]]; then
+	validateCertificate
 	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n"
 	notify-send $SCRIPT_NAME "Presione Ctrl + c para salir..."
 	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
