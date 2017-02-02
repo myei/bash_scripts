@@ -432,12 +432,12 @@ elif [[ $option = "4" ]]; then
 
 elif [[ $option = "5" ]]; then
 	validateCertificate
-	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
+	printf "\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "cat $REPOS_PATH.log"
 	exit
 elif [[ $option = "6" ]]; then
 	validateCertificate
-	printf "\n\n${CYAN}${BOLD} Cargando log... ${NC}\n"
+	printf "\n${CYAN}${BOLD} Cargando log... ${NC}\n"
 	notify-send $SCRIPT_NAME "Presione Ctrl + c para salir..."
 	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "tail -f $REPOS_PATH.log"
