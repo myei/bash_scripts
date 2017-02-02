@@ -99,7 +99,7 @@ validateCertificate() {
 	# 	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
 	# fi
 
-	# validateCommand sshpass
+	# validatePackage sshpass
 	# sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
 	# validateConnection $?
 	# printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
@@ -152,7 +152,7 @@ pressEnter() {
 	read -p ""
 }
 
-validateCommand() {
+validatePackage() {
 	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
 		printf "\n\n${CYAN}${BOLD} Instalando paquete necesario..${NC}\n\n"
 
@@ -172,7 +172,7 @@ validateCommand() {
 	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
 		printf "\n${RED}${BOLD} El paquete ${WHITE}${BOLD}$1${RED}${BOLD} no se ha instalado y es ${WHITE}${BOLD}necesario${RED}${BOLD} para poder continuar... ${NC}"
 		exit
-		# validateCommand $1
+		# validatePackage $1
 	fi
 }
 
@@ -197,7 +197,8 @@ elif [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" ]];
 	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
 	exit 1
 elif [[ $option = "1" ]]; then
-
+	validatePackage git
+	
 	##############################################################
 	#		V A L I D A C I O N E S   G E N E R A L E S
 	##############################################################
@@ -265,6 +266,7 @@ elif [[ $option = "1" ]]; then
 	exit
 
 elif [[ $option = "3" ]]; then
+	validatePackage git
 	validateCertificate
 
 	##############################################################
@@ -301,7 +303,9 @@ fi
 ##############################################################
 
 if [[ $repository = "" && $option = "2" ]]; then
+	validatePackage git
 	validateCertificate
+
 	printf "\n${CYAN}${BOLD} Nombre del respositorio a crear (${RED}${BOLD}sin .git${CYAN}${BOLD}) [$(basename $(pwd))]:${NC} "
 	read -p "" newRepo
 	printf "\n"
@@ -409,6 +413,7 @@ elif [[ $option = "3" ]]; then
 		let cont+=1
 	done
 elif [[ $option = "4" ]]; then
+	validatePackage git
 	saveScript
 
 	if [[ $? != "0" ]]; then
