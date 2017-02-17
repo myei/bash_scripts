@@ -21,10 +21,12 @@
 
 -- Información del sistema --
 	yaourt -S archey-plus
-	archey
+	archey 									#informacion detallada del sistema
 
 	pacman -S screenfetch
-	screenfetch
+	screenfetch 							#informacion detallada del sistema
+
+	stat -c %a <FILE or DIR>				#muestra permisos del objetivo en numeors XXX
 
 -- Instalar paquetes --
 	pacman -S “paquete” 					#Instala un paquete.
