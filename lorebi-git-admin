@@ -51,9 +51,9 @@ repoSelected=""
 
 # C O N F I G U R A C I Ó N
 SERVER_NAME="Ranchito's Server"
-SERVER='pmo@git.lorebi.com'
+SERVER='git@git.lorebi.com'
 PORT='2000'
-REPOS_PATH='/home/pmo/git/'
+REPOS_PATH='/home/git/'
 REMOTE_NAME='ranchito'
 USERIP=$(hostname --ip-address)
 USER=$(whoami)
@@ -119,6 +119,7 @@ validateConnection() {
 saveScript() {
 	if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
 		if [[ -f /usr/bin/$SCRIPT_NAME || -L /usr/bin/$SCRIPT_NAME ]]; then
+			printf "\n\n"
 			sudo rm /usr/bin/$SCRIPT_NAME
 		fi
 		
@@ -155,7 +156,7 @@ pressEnter() {
 }
 
 validatePackage() {
-	if [[ $(ls /usr/bin/$1 | grep $1) = '' ]]; then
+	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
 		printf "\n\n${CYAN}${BOLD} Instalando paquete necesario..${NC}\n\n"
 
 		if [[ -f /usr/bin/dpkg ]]; then
@@ -171,7 +172,7 @@ validatePackage() {
 		fi
 	fi
 
-	if [[ $(ls /usr/bin/$1 | grep $1) = '' ]]; then
+	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
 		printf "\n${RED}${BOLD} El paquete ${WHITE}${BOLD}$1${RED}${BOLD} no se ha instalado y es ${WHITE}${BOLD}necesario${RED}${BOLD} para poder continuar... ${NC}"
 		exit
 		# validatePackage $1
@@ -179,7 +180,7 @@ validatePackage() {
 }
 
 logger() {
-	logPath='/home/pmo/git/.log'
+	logPath='/home/git/.log'
 
 	if [[ ! -f $logPath ]]; then
 		touch $logPath
@@ -357,14 +358,18 @@ if [[ $option = "2" ]]; then
 	printf "\n${GREEN}${BOLD} Repositorio creado...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
 	git init
+
 	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n"
 	git add --all
+
 	printf "\n${CYAN}${BOLD} Creando el commit...${NC}\n\n"
-	git commit -m "INITIAL COMMIT TO $SERVER_NAME "
+	git commit -m "Saving in: $SERVER_NAME "
 	git remote remove $REMOTE_NAME
 	git remote add $REMOTE_NAME "git+ssh://$SERVER:$PORT$REPOS_PATH$repository"
+
 	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: $SERVER_NAME ${NC}\n\n"
-	git push $REMOTE_NAME master
+	git push $REMOTE_NAME --mirror
+	
 	notify-send $SCRIPT_NAME "$repository creeado exitosamente"
 
 elif [[ $option = "3" ]]; then
@@ -463,3 +468,4 @@ fi
 	pressEnter "salir"
 	clearForReal
 exit
+

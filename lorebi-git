@@ -50,9 +50,9 @@ repoSelected=""
 
 # C O N F I G U R A C I Ó N
 SERVER_NAME="Ranchito's Server"
-SERVER='pmo@git.lorebi.com'
+SERVER='git@git.lorebi.com'
 PORT='2000'
-REPOS_PATH='/home/pmo/git/'
+REPOS_PATH='/home/git/'
 REMOTE_NAME='ranchito'
 USERIP=$(hostname --ip-address)
 USER=$(whoami)
@@ -177,7 +177,7 @@ validatePackage() {
 }
 
 logger() {
-	logPath='/home/pmo/git/.log'
+	logPath='/home/git/.log'
 
 	if [[ ! -f $logPath ]]; then
 		touch $logPath
@@ -340,7 +340,6 @@ if [[ $option = "2" ]]; then
 											echo 0
 										fi	
 									")
-
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
 	##############################################################
@@ -356,14 +355,18 @@ if [[ $option = "2" ]]; then
 	printf "\n${GREEN}${BOLD} Repositorio creado...${NC}\n\n"
 	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
 	git init
+
 	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n"
 	git add --all
+
 	printf "\n${CYAN}${BOLD} Creando el commit...${NC}\n\n"
 	git commit -m "Saving in: $SERVER_NAME "
 	git remote remove $REMOTE_NAME
 	git remote add $REMOTE_NAME "git+ssh://$SERVER:$PORT$REPOS_PATH$repository"
+
 	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: $SERVER_NAME ${NC}\n\n"
-	git push $REMOTE_NAME master
+	git push $REMOTE_NAME --mirror
+	
 	notify-send $SCRIPT_NAME "$repository creeado exitosamente"
 
 elif [[ $option = "3" ]]; then
