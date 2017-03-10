@@ -119,7 +119,12 @@ fi
 
 cp $pem /home/$user/.certs/
 chmod 600 /home/$user/.certs/$filename
-chown -R $user:$user /home/$user/.certs
+
+if [[ -f /usr/bin/dpkg ]]; then
+	chown -R $user:$user /home/$user/.certs
+elif [[ -f /usr/bin/pacman ]]; then
+	chown -R $user:users /home/$user/.certs
+fi
 
 echo -e "\n IdentityFile /home/$user/.certs/${filename}" >> /etc/ssh/ssh_config
 

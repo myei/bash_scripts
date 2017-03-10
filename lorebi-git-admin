@@ -292,12 +292,7 @@ elif [[ $option = "3" || $option = "4" ]]; then
 	read -p "" repoSelec
 	printf "\n"
 
-    if [[ $repoSelec -ge ${#array[*]} || $repoSelec < 0 || !($repoSelec =~ $isNumber) || $repoSelec = "" ]]; then
-		printf "\n${RED}${BOLD} Debe seleccionar un repositorio...${NC}\n\n"
-		exit 1
-	fi
-
-   	repository=${array[$repoSelec]}
+   	repository="clone"
 fi
 
 ##############################################################
@@ -374,49 +369,61 @@ if [[ $option = "2" ]]; then
 
 elif [[ $option = "3" ]]; then
 
-	direc=$(pwd)"/"${repository:0:-4}
-	printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repoSelec]}' ${NF}${YELLOW}${BOLD}en ${I}'$direc'${BOLD}? [Y/n/o]: ${WHITE}"
-	read -n 1 choice
-	printf "${NC}\n"
+	for repo in ${repoSelec[@]}; do
 
-	if [[ $choice = "o" || $choice = "O" ]]; then
-		whereDoICLone
-	elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
-		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
-		exit 1
-	else 
-		choice=""
-	fi
-
-	allClear=false
-	while [[ $allClear = false ]]; do
-		if [[ -d $direc ]]; then
-			confirm "${YELLOW}" "Ya existe el directorio ${I}'$direc'... Clonar en uno distinto"
-			whereDoICLone
-		else
-			allClear=true
+		if [[ !($repo =~ $isNumber) || $repo -ge ${#array[*]} || $repo < 0 || $repo = "" ]]; then
+			printf "\n${RED}${BOLD} El repositorio número: '$repo' no existe...${NC}\n\n"
+			exit 1
 		fi
-	done
 
-	printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
+		repository=${array[$repo]}
 
-	git clone git+ssh://$SERVER:$PORT$REPOS_PATH$repository $choice
-	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $USERIP $USER $USERHOME");
-	cd $direc
-	git remote rename origin $REMOTE_NAME
+		direc=$(pwd)"/"${repository:0:-4}
+		printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repo]}' ${NF}${YELLOW}${BOLD}en ${I}'$direc'${BOLD}? [Y/n/o]: ${WHITE}"
+		read -n 1 choice
+		printf "${NC}\n"
 
-	# C R E A N D O   Y   A C T U A L I Z A N D O   
-	# T O D A S   L A S   R A M A S   R E M O T A S
-	branches=$(git branch -a | grep remotes/$REMOTE_NAME | grep -v HEAD | grep -v master)
+		if [[ $choice = "o" || $choice = "O" ]]; then
+			whereDoICLone
+		elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
+			printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
+			exit 1
+		else 
+			choice=""
+		fi
 
-	cont=0
-	for remote in ${branches[*]}
-	do
-		IFS='/' read -r -a branch <<< "$remote"
-		printf "\n${CYAN}${BOLD} Creando y actualizando rama remota: ${YELLOW}${branch[2]} ${NC}\n\n"
-		git branch ${branch[2]} $remote
+		allClear=false
+		while [[ $allClear = false ]]; do
+			if [[ -d $direc ]]; then
+				confirm "${YELLOW}" "Ya existe el directorio ${I}'$direc'... Clonar en uno distinto"
+				whereDoICLone
+			else
+				allClear=true
+			fi
+		done
 
-		let cont+=1
+		printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
+
+		git clone git+ssh://$SERVER:$PORT$REPOS_PATH$repository $choice
+		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $USERIP $USER $USERHOME");
+		cd $direc
+		git remote rename origin $REMOTE_NAME
+
+		# C R E A N D O   Y   A C T U A L I Z A N D O   
+		# T O D A S   L A S   R A M A S   R E M O T A S
+		branches=$(git branch -a | grep remotes/$REMOTE_NAME | grep -v HEAD | grep -v master)
+
+		cont=0
+		for remote in ${branches[*]}; do
+			IFS='/' read -r -a branch <<< "$remote"
+			printf "\n${CYAN}${BOLD} Creando y actualizando rama remota: ${YELLOW}${branch[2]} ${NC}\n\n"
+			git branch ${branch[2]} $remote
+
+			let cont+=1
+		done
+
+		printf "\n\n"
+		cd ..
 	done
 
 elif [[ $option = "4" ]]; then
