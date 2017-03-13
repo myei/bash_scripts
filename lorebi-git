@@ -1,7 +1,7 @@
 #!/bin/bash
 ##############################################################
 #
-# 					Creado por: Manuel Gil
+# 										Creado por: Manuel Gil
 #
 # Este script permite:
 #
@@ -28,6 +28,8 @@
 #	Para el resto se permite la instalación manual desde el
 #	script
 #
+# 														v2.0
+# 
 ##############################################################
 
 ##############################################################
