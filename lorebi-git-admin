@@ -502,7 +502,6 @@ elif [[ $option = "7" ]]; then
 	if [[ $? != "0" ]]; then
 		notify-send $SCRIPT_NAME "Debe autenticarse correctamente!"
 		sendMsg ERROR "Debe autenticarse correctamente..."
-		exit
 	else
 		sendMsg GOOD "Ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'"
 		pressEnter "volver al menú principal"
