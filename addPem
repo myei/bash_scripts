@@ -86,7 +86,6 @@ while [[ $foundIt = false ]]; do
 		read -p "" -e pem
 		printf "\n"
 	else
-		echo $pem
 		foundIt=true
 	fi
 done

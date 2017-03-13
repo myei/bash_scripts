@@ -374,19 +374,19 @@ if [[ $option = "2" ]]; then
 		sendMsg ERROR "No se pudo conectar con el servidor $SERVER_NAME, verifique su conexión a internet"
 	fi
 
-	sendMsg GOOD "Repositorio creado"
-	sendMsg INFO "Creando repositorio local si no estaba creado"
+	sendMsg GOOD "Repositorio creado..."
+	sendMsg INFO "Creando repositorio local si no estaba creado..."
 	git init
 
-	sendMsg INFO "Agregando archivos"
+	sendMsg INFO "Agregando archivos..."
 	git add --all
 
-	sendMsg INFO "Creando el commit"
+	sendMsg INFO "Creando el commit..."
 	git commit -m "Saving in: $SERVER_NAME "
 	git remote remove $REMOTE_NAME
-	git remote add $REMOTE_NAME "git+ssh://$SERVER:$PORT$REPOS_PATH$repository"
+	git remote add $REMOTE_NAME git+ssh://$SERVER:$PORT$REPOS_PATH$repository
 
-	endMsg INFO $CYAN "Cargando el estado del proyecto al: $SERVER_NAME"
+	sendMsg INFO "Cargando el estado del proyecto al: $SERVER_NAME..."
 	git push $REMOTE_NAME --mirror
 	
 	notify-send $SCRIPT_NAME "$repository creeado exitosamente"
@@ -474,13 +474,15 @@ elif [[ $option = "4" ]]; then
 
 				$(declare -f); logger DELETE ${repository} $userip  $user $userHome
 			fi	
-		"
+		" &>/dev/null
 		notify-send $SCRIPT_NAME "${repository} eliminado"
-		sendMsg GOOD ${repository} eliminado
+		sendMsg GOOD "${repository} eliminado..."
 
 	done
 	
 	pressEnter "salir"
+	clearForReal
+	exit
 
 elif [[ $option = "5" ]]; then
 	validateCertificate
