@@ -5,17 +5,32 @@
 #
 # Este script permite:
 #
-# - Autenticar el cliente con el servidor
+# - Autenticar el cliente con el servidor, incluyendo
+# 	generación de llaves y registro de credenciales
 #
-# - Crear repositorio Git (si no existe) en el servidor 
-# 	permitiendo el uso compartido
+# - Crear repositorio Git en el servidor permitiendo
+# 	el uso compartido
 #
 # - Enlazar el proyecto con el repositorio y sincronizar 
-# 	el estado del proyecto automáticamente al servidor
+# 	el estado del mismo automáticamente al servidor
 #
-# - Clonar un proyecto existente desde servidor de Git
+# - Clonar uno o varios repositorios a la vez, incluidas
+# 	todas sus ramas remotas y seteando upstreams para cada una
+# 
+# - Eliminar repositorio
 #
-# - Eliminar un repositorio remoto
+# - Autoinstalación del script
+#
+# -	Autoinstalación de paquetes necesarios, manejadores de
+# 	paquetes soportados por ahora:
+#			> dpkg
+#			> pacman
+#			> yum
+#
+#	Para el resto se permite la instalación manual desde el
+#	script
+# 
+# - Servicio de logs descriptivos de uso
 #
 ##############################################################
 
@@ -86,11 +101,31 @@ printf "\n${CYAN}${BOLD} Opción: ${NC}${BOLD}"
 read -n 1 option
 # clearForReal
 
-validateCertificate() {
-	printf "\n\n${CYAN} ${BOLD}Validando certificados...${NC}"
-	if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) = "" ]]; then
-		printf "${RED}${BOLD} ${BAD}\n\n No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente${NC}\n\n"
+sendMsg() {
+	if [[ $1 = "ERROR" ]]; then
+		color=$RED
+	elif [[ $1 = "INFO" ]]; then
+		color=$CYAN
+	elif [[ $1 = "WARN" ]]; then
+		color=$YELLOW
+	elif [[ $1 = "GOOD" ]]; then
+		color=$GREEN
+	else
+		color=$WHITE
+	fi
+
+	printf "\n${color}${BOLD} $2${NC}\n\n"
+
+	if [[ $1 = "ERROR" ]]; then
 		exit 1
+	fi
+}
+
+validateCertificate() {
+	printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
+	if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) = "" ]]; then
+		printf "${RED}${BOLD} ${BAD}\n"
+		sendMsg ERROR "No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente"
 	fi
 	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 
@@ -110,9 +145,7 @@ validateCertificate() {
 
 validateConnection() {
 	if [[ $1 != 0 ]]; then
-		printf "\n${RED}${BOLD} No se pudo conectar con el servidor $SERVER_NAME,
-	verifique su conexión a internet...${NC}\n\n"
-		exit 1
+		sendMsg ERROR "No se pudo conectar con el servidor $SERVER_NAME, verifique su conexión a internet"
 	fi
 }
 
@@ -133,8 +166,7 @@ confirm() {
 	printf "${NC}\n"
 
 	if [[ $confirm != "Y" && $confirm != "y" && $confirm != "" ]]; then
-		printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
-		exit 1
+		sendMsg GOOD "\n Operación abortada..."
 	fi
 }
 
@@ -157,7 +189,7 @@ pressEnter() {
 
 validatePackage() {
 	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
-		printf "\n\n${CYAN}${BOLD} Instalando paquete necesario..${NC}\n\n"
+		sendMsg INFO "\n Instalando paquete necesario..."
 
 		if [[ -f /usr/bin/dpkg ]]; then
 			sudo apt-get install $1 -y
@@ -166,15 +198,14 @@ validatePackage() {
 		elif [[ -f /usr/bin/yum ]]; then
 			sudo yum -y install $1
 		else
-			printf "\n\n${YELLOW}${BOLD} Disculpa, no conozco tu manejador de paquetes, por favor ingresa el equivalente al siguiente comando en tu sistema: '${CYAN}${BOLD}apt-get install $1${YELLOW}${BOLD}' ${NC}${BOLD}\n\n"
+			sendMsg WARN "\n Disculpa, no conozco tu manejador de paquetes, por favor ingresa el equivalente al siguiente comando en tu sistema: '${CYAN}${BOLD}apt-get install $1${YELLOW}${BOLD}' ${NC}${BOLD}"
 			read -p " " comando
 			sudo $comando
 		fi
 	fi
 
 	if [[ $(ls /usr/bin/ | grep $1) = '' ]]; then
-		printf "\n${RED}${BOLD} El paquete ${WHITE}${BOLD}$1${RED}${BOLD} no se ha instalado y es ${WHITE}${BOLD}necesario${RED}${BOLD} para poder continuar... ${NC}"
-		exit
+		sendMsg ERROR "El paquete ${WHITE}${BOLD}$1${RED}${BOLD} no se ha instalado y es ${WHITE}${BOLD}necesario${RED}${BOLD} para poder continuar"
 		# validatePackage $1
 	fi
 }
@@ -193,27 +224,23 @@ logger() {
 }
 
 if [[ ($(echo $(readlink -f $0) | grep '/usr/bin/') != '' && $option = "7")]]; then
-	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
-	exit
+	sendMsg ERROR "Ha salido del programa"
 elif [[ $option != "1" && $option != "2" && $option != "3" && $option != "4" && $option != "5" && $option != "6" && $option != "7" ]]; then
-	printf "\n${YELLOW}${BOLD} Ha salido del programa...${NC}\n\n"
-	exit 1
+	sendMsg ERROR "Ha salido del programa"
 elif [[ $option = "1" ]]; then
 	validatePackage git
-
+	
 	##############################################################
 	#		V A L I D A C I O N E S   G E N E R A L E S
 	##############################################################
 
-	printf "\n\n"
+	printf "\n"
 	if [ $EUID -ne 0 ]; then
-		printf "${RED}${BOLD} Para acceder a esta opción debes ejecutar el script como root${NC}\n\n"
-		exit 1
+		sendMsg ERROR "Para acceder a esta opción debes ejecutar el script como root"
 	fi
 
 	if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) != "" ]]; then
-		confirm "${YELLOW}" "Parece que ya te autenticaste... Quieres volver a hacerlo para solucionar algún problema"
-		printf "\n"
+		confirm $YELLOW "\n Parece que ya te autenticaste... Quieres volver a hacerlo para solucionar algún problema"
 	fi
 
 	foundIt=false
@@ -231,13 +258,12 @@ elif [[ $option = "1" ]]; then
 	printf "${CYAN}${BOLD} Ingrese su usuario de linux:${NC} "
 	read -p "" user
 	if [[ ! -d /home/$user || $user = "" ]]; then
-		printf "\n${RED}${BOLD} Ese no es tu usuario, por favor ingresa el correcto${NC}\n\n"
-		exit 1
+		sendMsg ERROR "Ese no es tu usuario, por favor ingresa el correcto"
 	fi
 	
 	saveScript
 
-	printf "\n${CYAN}${BOLD} Autenticando...${NC}\n"
+	sendMsg INFO "Autenticando..."
 
 	if [ ! -d /home/$user/.certs ]; then
 		mkdir /home/$user/.certs
@@ -260,7 +286,8 @@ elif [[ $option = "1" ]]; then
 	echo -e "\n IdentityFile /home/$user/.certs/$CREDENCIAL" >> /etc/ssh/ssh_config
 
 	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
-	printf "\n${GREEN}${BOLD} Autenticación exitosa, ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'...${NC}\n"
+
+	sendMsg GOOD "Autenticación exitosa, ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'"
 
 	pressEnter "salir"
 	# exec $(readlink -f "$0")
@@ -288,10 +315,10 @@ elif [[ $option = "3" || $option = "4" ]]; then
 		let cont+=1
 	done
 
-	printf "\n ${CYAN}${BOLD}Seleccione un repositorio:${WHITE} "
-	read -p "" repoSelec
+	printf "\n ${CYAN}${BOLD}Seleccione repositorio(s) [0 1 ... n]:${WHITE} "
+	read -p "" -a repoSelec
 	printf "\n"
-
+ 
    	repository="clone"
 fi
 
@@ -320,7 +347,7 @@ if [[ $option = "2" ]]; then
 
 	confirm "${YELLOW}" "Está seguro de crear el repositorio ${I}'$repository'${NF}"
 
-	printf "\n${CYAN} ${BOLD}Creando repositorio remoto...${NC}\n\n"
+	sendMsg INFO "Creando repositorio remoto..."
 
 	creatingRepo=$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "
 										if [ ! -d $REPOS_PATH$repository ]; then
@@ -337,57 +364,56 @@ if [[ $option = "2" ]]; then
 											echo 0
 										fi	
 									")
-
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   C L I E N T E
 	##############################################################
 
 	if [[ $(grep "0" <<< $creatingRepo) ]]; then
-		printf "\n${RED}${BOLD} Ese nombre de repositorio ya esta utilizado...${NC}\n\n"
-		exit 1
+		sendMsg ERROR "Ese nombre de repositorio ya esta utilizado"
 	elif [[ $(grep "0" <<< $creatingRepo) = "" && $(grep "1" <<< $creatingRepo) = "" ]]; then
-		printf "\n${RED}${BOLD} No se pudo conectar con el servidor $SERVER_NAME, verifique su conexión a internet...${NC}\n\n"
-		exit 1
+		sendMsg ERROR "No se pudo conectar con el servidor $SERVER_NAME, verifique su conexión a internet"
 	fi
 
-	printf "\n${GREEN}${BOLD} Repositorio creado...${NC}\n\n"
-	printf "\n${CYAN}${BOLD} Creando repositorio local si no estaba creado...${NC}\n\n"
+	sendMsg GOOD "Repositorio creado"
+	sendMsg INFO "Creando repositorio local si no estaba creado"
 	git init
 
-	printf "\n${CYAN}${BOLD} Agregando archivos...${NC}\n"
+	sendMsg INFO "Agregando archivos"
 	git add --all
 
-	printf "\n${CYAN}${BOLD} Creando el commit...${NC}\n\n"
+	sendMsg INFO "Creando el commit"
 	git commit -m "Saving in: $SERVER_NAME "
 	git remote remove $REMOTE_NAME
 	git remote add $REMOTE_NAME "git+ssh://$SERVER:$PORT$REPOS_PATH$repository"
 
-	printf "\n${CYAN}${BOLD} Cargando el estado del proyecto al: $SERVER_NAME ${NC}\n\n"
+	endMsg INFO $CYAN "Cargando el estado del proyecto al: $SERVER_NAME"
 	git push $REMOTE_NAME --mirror
 	
 	notify-send $SCRIPT_NAME "$repository creeado exitosamente"
 
 elif [[ $option = "3" ]]; then
 
+	if [[ ${repoSelec[@]} = "" ]]; then
+		sendMsg ERROR "Debe especificar al menos un repositorio"
+	fi
+
 	for repo in ${repoSelec[@]}; do
 
 		if [[ !($repo =~ $isNumber) || $repo -ge ${#array[*]} || $repo < 0 || $repo = "" ]]; then
-			printf "\n${RED}${BOLD} El repositorio número: '$repo' no existe...${NC}\n\n"
-			exit 1
+			sendMsg ERROR "El repositorio número: '$repo' no existe"
 		fi
 
 		repository=${array[$repo]}
 
 		direc=$(pwd)"/"${repository:0:-4}
-		printf " $1${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repo]}' ${NF}${YELLOW}${BOLD}en ${I}'$direc'${BOLD}? [Y/n/o]: ${WHITE}"
+		printf " ${BOLD}${YELLOW}Está seguro de clonar ${I}'${array[$repo]}' ${NF}${YELLOW}${BOLD}en ${I}'$direc'${BOLD}? [Y/n/o]: ${WHITE}"
 		read -n 1 choice
 		printf "${NC}\n"
 
 		if [[ $choice = "o" || $choice = "O" ]]; then
 			whereDoICLone
 		elif [[ $choice != "Y" && $choice != "y" && $choice != "" ]]; then
-			printf "\n\n${GREEN} ${BOLD}Operación abortada... ${NC}\n\n"
-			exit 1
+			sendMsg GOOD "Operación abortada"
 		else 
 			choice=""
 		fi
@@ -402,7 +428,7 @@ elif [[ $option = "3" ]]; then
 			fi
 		done
 
-		printf "\n${CYAN}${BOLD} Clonando repositorio...${NC}\n\n"
+		sendMsg INFO "Clonando repositorio"
 
 		git clone git+ssh://$SERVER:$PORT$REPOS_PATH$repository $choice
 		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $USERIP $USER $USERHOME");
@@ -416,7 +442,7 @@ elif [[ $option = "3" ]]; then
 		cont=0
 		for remote in ${branches[*]}; do
 			IFS='/' read -r -a branch <<< "$remote"
-			printf "\n${CYAN}${BOLD} Creando y actualizando rama remota: ${YELLOW}${branch[2]} ${NC}\n\n"
+			sendMsg INFO "Creando y actualizando rama remota: ${YELLOW}${branch[2]}"
 			git branch ${branch[2]} $remote
 
 			let cont+=1
@@ -428,30 +454,44 @@ elif [[ $option = "3" ]]; then
 
 elif [[ $option = "4" ]]; then
 
-	confirm "${RED}" "Está seguro de eliminar ${I}'${array[$repoSelec]}'${NF}"
+	if [[ ${repoSelec[@]} = "" ]]; then
+		sendMsg ERROR "Debe especificar al menos un repositorio"
+	fi
 
-	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "
-		if [ -d $REPOS_PATH${array[$repoSelec]} ]; then
-			sudo rm -r $REPOS_PATH${array[$repoSelec]}
+	for repo in ${repoSelec[@]}; do
 
-			$(declare -f); logger DELETE ${array[$repoSelec]} $userip  $user $userHome
-		fi	
-	"
-	clearForReal
-	notify-send $SCRIPT_NAME "${array[$repoSelec]} eliminado"
-	printf "\n${GREEN} ${BOLD}${array[$repoSelec]} eliminado... ${NC}\n\n"	
-	exit
+		if [[ !($repo =~ $isNumber) || $repo -ge ${#array[*]} || $repo < 0 || $repo = "" ]]; then
+			sendMsg ERROR "El repositorio número: '$repo' no existe"
+		fi
+
+		repository=${array[$repo]}
+
+		confirm ${RED} "Está seguro de eliminar ${I}'${repository}'${NF}"
+
+		ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "
+			if [ -d $REPOS_PATH${repository} ]; then
+				sudo rm -r $REPOS_PATH${repository}
+
+				$(declare -f); logger DELETE ${repository} $userip  $user $userHome
+			fi	
+		"
+		notify-send $SCRIPT_NAME "${repository} eliminado"
+		sendMsg GOOD ${repository} eliminado
+
+	done
+	
+	pressEnter "salir"
 
 elif [[ $option = "5" ]]; then
 	validateCertificate
-	printf "\n${CYAN}${BOLD} Cargando log... ${NC}\n\n"
+	sendMsg INFO "Cargando log..."
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "cat $REPOS_PATH.log"
 	exit
 elif [[ $option = "6" ]]; then
 	validateCertificate
-	printf "\n${CYAN}${BOLD} Cargando log... ${NC}\n"
+	sendMsg INFO "Cargando log..."
 	notify-send $SCRIPT_NAME "Presione Ctrl + c para salir..."
-	printf "\n${YELLOW}${BOLD} Presione Ctrl + c para salir...${NC}\n\n"
+	sendMsg WARN "Presione Ctrl + c para salir..."
 	ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "tail -f $REPOS_PATH.log"
 	exit
 elif [[ $option = "7" ]]; then
@@ -459,18 +499,18 @@ elif [[ $option = "7" ]]; then
 
 	if [[ $? != "0" ]]; then
 		notify-send $SCRIPT_NAME "Debe autenticarse correctamente!"
-		printf "\n${RED}${BOLD} Debe autenticarse correctamente...${NC}\n\n"
+		sendMsg ERROR "Debe autenticarse correctamente..."
 		exit
 	else
-		printf "\n\n${GREEN}${BOLD} Ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'${NC}\n"
+		sendMsg GOOD "Ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'"
 		pressEnter "volver al menú principal"
 		exec $(readlink -f "$0")
 	fi
 
 fi
 
-	printf "\n${GREEN}${BOLD} Listo, ahora puedes seguir trabajando en tu proyecto...${NC}\n\n"
-	printf "\n${CYAN}${BOLD} NOTA: tus pushs deben estar dirigidos a '$REMOTE_NAME' (git push $REMOTE_NAME <branch>)...${NC}\n\n"
+	sendMsg GOOD "Listo, ahora puedes seguir trabajando en tu proyecto"
+	sendMsg INFO "NOTA: tus pushs deben estar dirigidos a '$REMOTE_NAME' (git push $REMOTE_NAME <branch>)"
 
 	pressEnter "salir"
 	clearForReal

@@ -26,9 +26,8 @@ read -p "" -a arr
 
 echo ${arr[1]}
 
-if [[ ${arr[1]} == "" ]]; then
+if [[ ${arr[@]} = "" ]]; then
 	echo "vacio"
-
 fi
 
 # for repo in ${arr[@]}; do
