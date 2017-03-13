@@ -17,7 +17,7 @@
 # - Clonar uno o varios repositorios a la vez, incluidas
 # 	todas sus ramas remotas y seteando upstreams para cada una
 # 
-# - Eliminar repositorio
+# - Eliminar uno o varios repositorios a la vez
 #
 # - Autoinstalación del script
 #
