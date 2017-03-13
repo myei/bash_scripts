@@ -424,7 +424,7 @@ elif [[ $option = "3" ]]; then
 			fi
 		done
 
-		sendMsg INFO "Clonando repositorio"
+		sendMsg INFO "Clonando repositorio..."
 
 		git clone git+ssh://$SERVER:$PORT$REPOS_PATH$repository $choice
 		$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger CLONE ${repository} $USERIP $USER $USERHOME");
