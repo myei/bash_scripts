@@ -161,7 +161,7 @@ confirm() {
 	printf "${NC}\n"
 
 	if [[ $confirm != "Y" && $confirm != "y" && $confirm != "" ]]; then
-		sendMsg GOOD "\n Operación abortada..."
+		sendMsg ERROR "\n Operación abortada..."
 	fi
 }
 
@@ -333,9 +333,6 @@ if [[ $repository = "" && $option = "2" ]]; then
 	    newRepo=$(basename $(pwd))
 	fi
 	repository=$newRepo".git"
-fi 
-
-if [[ $option = "2" ]]; then
 
 	##############################################################
 	#		C O N F I G U R A C I Ó N   D E L   S E R V I D O R
