@@ -2,13 +2,14 @@
 
 ##############################################################
 #
-# 					Creado por: Manuel Gil
+# 										Creado por: Manuel Gil
 #
 # Este script permite:
 #
 # - Agregar un certificado pem al ssh para realizar conexiones
 #   rápidas al servidor
 #
+# 														v1.0
 ##############################################################
 
 ##############################################################

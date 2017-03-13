@@ -3,7 +3,7 @@
 #
 # 										Creado por: Manuel Gil
 #
-# Este script permite:
+# Este script interactivo permite:
 #
 # - Autenticar el cliente con el servidor, incluyendo
 # 	generación de llaves y registro de credenciales
@@ -30,7 +30,10 @@
 #	Para el resto se permite la instalación manual desde el
 #	script
 # 
-# - Servicio de logs descriptivos de uso
+# - Servicio de logs en tiempo real e historico descriptivos
+# 	de uso
+# 
+# - Ampliamente validado y flexible
 # 
 # 														v2.0
 #

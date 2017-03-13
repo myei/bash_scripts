@@ -1,4 +1,19 @@
 #!/bin/bash
+##############################################################
+#
+# 										Creado por: Manuel Gil
+#
+# Este script interactivo permite:
+# 
+# - Generación de claves RSA de 4096 bits
+# 
+# - Generación de certificados 'pem' de 4096 bits
+# 
+# - Autoautenticación de dichos certificados en el equipo
+# 	permitiendo acceso ssh mediante dicho certificado
+# 
+# 														v1.0
+##############################################################
 
 # C O L O R S
 GREEN='\033[0;32m'
