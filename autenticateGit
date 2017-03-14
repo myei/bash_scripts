@@ -2,7 +2,7 @@
 
 ##############################################################
 #
-# 					Creado por: Manuel Gil
+# 										Creado por: Manuel Gil
 #
 # Este script permite:
 #
@@ -14,6 +14,8 @@
 #		  desde la misma ruta donde se encuentra el  
 #		  certificado -- LB-PMO.pem -- para su correcto 
 #		  funcionamiento.
+# 
+# 												lorebiGit v1.0
 #
 ##############################################################
 

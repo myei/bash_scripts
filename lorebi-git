@@ -5,8 +5,12 @@
 #
 # Este script interactivo permite:
 #
-# - Autenticar el cliente con el servidor, incluyendo
-# 	generación de llaves y registro de credenciales
+# - Autenticar el cliente con el servidor mediante:
+# 			> pem (default)
+# 			> rsa
+# 
+# 	Incluyendo generación de llaves y registro de
+#	credenciales
 #
 # - Crear repositorio Git en el servidor permitiendo
 # 	el uso compartido
@@ -30,7 +34,7 @@
 # 
 # - Ampliamente validado y flexible
 #
-# 														v2.0
+# 														v3.1
 # 
 ##############################################################
 
@@ -76,6 +80,8 @@ USER=$(whoami)
 USERHOME=$(ls -m /home)
 SCRIPT_NAME='lorebiGit'
 CREDENCIAL='LB-GIT.pem'
+AUTHENTICATION='pem'
+PASSWORD=''
 
 clearForReal() { printf "\ec"; }
 
@@ -122,24 +128,26 @@ sendMsg() {
 
 validateCertificate() {
 	printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
-	if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) = "" ]]; then
-		printf "${RED}${BOLD} ${BAD}\n"
-		sendMsg ERROR "No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente"
+
+	if [[ $AUTHENTICATION = "pem" ]]; then
+		if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) = "" ]]; then
+			printf "${RED}${BOLD} ${BAD}\n"
+			sendMsg ERROR "No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente"
+		fi
+		printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
+	else
+		if [ ! -f ~/.ssh/id_rsa ]; then
+			sendMsg INFO "Autenticando con el $SERVER_NAME..."
+			sendMsg INFO "Generando clave..."
+			ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
+			$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE $USERIP $USER $USERHOME");
+		fi
+
+		validatePackage sshpass
+		sshpass -p $PASSWORD ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
+		validateConnection $?
+		printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 	fi
-	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
-
-	# printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
-	# if [ ! -f ~/.ssh/id_rsa ]; then
-	# 	printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME... ${NC}"
-	#     printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
-	# 	ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
-	# 	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
-	# fi
-
-	# validatePackage sshpass
-	# sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
-	# validateConnection $?
-	# printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 }
 
 validateConnection() {

@@ -2,7 +2,7 @@
 
 ##############################################################
 #
-# Creado por: Manuel Gil
+# 										Creado por: Manuel Gil
 #
 # Este script permite:
 #
@@ -14,6 +14,8 @@
 #
 # - Enlazar el proyecto con el repositorio creado y sincronizar 
 # 	el estado del proyecto automáticamente al servidor
+# 
+# 												lorebiGit v1.0
 #
 ##############################################################
 
