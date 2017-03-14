@@ -61,6 +61,7 @@ NC='\033[0m'
 BOLD='\e[1m'
 NF='\e[0m'
 BLINK='\e[5m'
+I='\e[3m'
 S='\e[4m'
 
 # S Í M B O L O S
@@ -84,6 +85,8 @@ USER=$(whoami)
 USERHOME=$(ls -m /home)
 SCRIPT_NAME='lorebiGitAdmin'
 CREDENCIAL='LB-GIT.pem'
+AUTHENTICATION='pem'
+PASSWORD=''
 
 clearForReal() { printf "\ec"; }
 
@@ -132,24 +135,26 @@ sendMsg() {
 
 validateCertificate() {
 	printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
-	if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) = "" ]]; then
-		printf "${RED}${BOLD} ${BAD}\n"
-		sendMsg ERROR "No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente"
+
+	if [[ $AUTHENTICATION = "pem" ]]; then
+		if [[ $(grep -lir $CREDENCIAL /etc/ssh/ssh_config) = "" ]]; then
+			printf "${RED}${BOLD} ${BAD}\n"
+			sendMsg ERROR "No estas autenticado con el servidor, debes ejecutar la primera opción y autenticarte correctamente"
+		fi
+		printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
+	else
+		if [ ! -f ~/.ssh/id_rsa ]; then
+			sendMsg INFO "Autenticando con el $SERVER_NAME..."
+			sendMsg INFO "Generando clave..."
+			ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
+			$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE $USERIP $USER $USERHOME");
+		fi
+
+		validatePackage sshpass
+		sshpass -p $PASSWORD ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
+		validateConnection $?
+		printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 	fi
-	printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
-
-	# printf "\n\n${CYAN} ${BOLD}Validando credenciales...${NC}"
-	# if [ ! -f ~/.ssh/id_rsa ]; then
-	# 	printf "\n\n${CYAN}${BOLD} Autenticando con el $SERVER_NAME... ${NC}"
-	#     printf "\n\n${CYAN}${BOLD} Generando clave... ${NC}\n\n"
-	# 	ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N "" &>/dev/null
-	# 	$(ssh -t -t -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT "$(declare -f); logger AUTHENTICATE ${repository} $USERIP $USER $USERHOME");
-	# fi
-
-	# validatePackage sshpass
-	# sshpass -p "R0j0Put4." ssh-copy-id -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER -p $PORT &>/dev/null
-	# validateConnection $?
-	# printf "${GREEN}${BOLD} ${GOOD}${NC}\n"
 }
 
 validateConnection() {
@@ -509,7 +514,7 @@ elif [[ $option = "7" ]]; then
 		notify-send $SCRIPT_NAME "Debe autenticarse correctamente!"
 		sendMsg ERROR "Debe autenticarse correctamente..."
 	else
-		sendMsg GOOD "Ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'"
+		sendMsg GOOD "Ahora puedes ejecutarme donde quieras como: ${I}${PURPLE}${SCRIPT_NAME}"
 		pressEnter "volver al menú principal"
 		exec $(readlink -f "$0")
 	fi

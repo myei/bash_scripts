@@ -464,7 +464,7 @@ elif [[ $option = "4" ]]; then
 	if [[ $? != "0" ]]; then
 		sendMsg ERROR "Debe autenticarse correctamente"
 	else
-		sendMsg GOOD "Ahora puedes ejecutarme donde quieras como: '$SCRIPT_NAME'"
+		sendMsg GOOD "Ahora puedes ejecutarme donde quieras como: ${I}${PURPLE}${SCRIPT_NAME}"
 		pressEnter "volver al menú principal"
 		exec $(readlink -f "$0")
 	fi
