@@ -13,29 +13,34 @@
 # 														v1.0
 ##############################################################
 
-DIRS=('/home/mgil/dev/RegistrationCard')
+DIRS=('/home/yeixon/dev/LorebiDashboard/ /home/yeixon/dev/RegistrationCard')
 
 for project in $DIRS; do
+
 	cd $project
+
+	printf "updating `basename $project`... \n"
 	git remote update
 
-	UPSTREAM=${1:-'@{u}'}
+	UPSTREAM=${1:-@{u}}
 	LOCAL=$(git rev-parse @)
 	REMOTE=$(git rev-parse "$UPSTREAM")
 	BASE=$(git merge-base @ "$UPSTREAM")
 
-	if [ $LOCAL = $REMOTE ]; then
-	    echo "Up-to-date"
-	elif [ $LOCAL = $BASE ]; then
+	printf "status: "
+	if [[ $LOCAL = $REMOTE ]]; then
+	    printf "up-to-date \n"
+	elif [[ $LOCAL = $BASE ]]; then
 
-	    echo "Need to pull"
+	    printf "pulling... \n"
 
 		git stash
 		git pull
 
-	elif [ $REMOTE = $BASE ]; then
-	    echo "Need to push"
+	elif [[ $REMOTE = $BASE ]]; then
+	    printf "need to push \n"
 	else
-	    echo "Diverged"
+	    printf "diverged \n"
 	fi
+
 done
