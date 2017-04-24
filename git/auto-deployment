@@ -7,40 +7,62 @@
 # Este script permite:
 #
 # - Este script permite el autodeploy de múltiples 
-#   aplicaciones manejadas por GIT especificadas en 'DIRS'
+#   aplicaciones manejadas por GIT especificadas como argumentos
 # 	
 #
 # 														v1.0
 ##############################################################
+# C O L O R S
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+PURPLE='\e[95m'
+WHITE='\e[97m'
+YELLOW='\e[93m'
+NC='\033[0m'
 
-DIRS=('/home/yeixon/dev/LorebiDashboard/ /home/yeixon/dev/RegistrationCard')
+# F O N T S
+BOLD='\e[1m'
 
-for project in $DIRS; do
+if [[ $# -eq 0 ]]; then
+	printf "error: Argumentos inválidos \n\n"
+
+	printf "auto-deployment usage: auto-deployment [ dir1 dir2 ... dirN ] \n\n"
+
+	printf "	dirX: Nombre de los directorios a actualizar \n\n"
+
+	exit
+fi
+
+for project in $@; do
 
 	cd $project
 
-	printf "updating `basename $project`... \n"
+	printf "updating -> ${CYAN}${BOLD}`basename $project`${NC}... \n"
 	git remote update
 
-	UPSTREAM=${1:-@{u}}
-	LOCAL=$(git rev-parse @)
-	REMOTE=$(git rev-parse "$UPSTREAM")
-	BASE=$(git merge-base @ "$UPSTREAM")
+	UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+    LOCAL=$(git rev-parse @)
+    REMOTE=$(git rev-parse $UPSTREAM)
+    BASE=$(git merge-base @ $UPSTREAM)
 
 	printf "status: "
 	if [[ $LOCAL = $REMOTE ]]; then
-	    printf "up-to-date \n"
+	    printf "${GREEN}${BOLD}up-to-date${NC} \n"
 	elif [[ $LOCAL = $BASE ]]; then
 
-	    printf "pulling... \n"
+	    printf "${YELLOW}${BOLD}pulling...${NC} \n"
 
 		git stash
 		git pull
 
+		printf "status: ${GREEN}${BOLD}updated${NC} \n"
+
 	elif [[ $REMOTE = $BASE ]]; then
-	    printf "need to push \n"
+	    printf "${RED}${BOLD}need to push${NC} \n"
 	else
-	    printf "diverged \n"
+	    printf "${REED}${BOLD}diverged${NC} \n"
 	fi
 
 done
