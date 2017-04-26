@@ -8,10 +8,17 @@
 #
 # - Este script permite el autodeploy de múltiples 
 #   aplicaciones manejadas por GIT especificadas como argumentos
+# 
+# - Se permiten rutas relativas o absolutas
+# 
+# - Permite auto instalación (-i --install)
 # 	
 #
-# 														v2.0
+# 														v2.2
 ##############################################################
+
+SCRIPT_NAME='auto-deployment'
+
 # C O L O R S
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -30,39 +37,61 @@ if [[ $# -eq 0 ]]; then
 
 	printf "auto-deployment usage: auto-deployment [ dir1 dir2 ... dirN ] \n\n"
 
-	printf "	dirX: Nombre de los directorios a actualizar \n\n"
+	printf "	dirX: Ruta de los directorios a actualizar, pueden ser relativas o absolutas \n\n"
+
+	exit
+elif [[ $1 = "-i" || $1 = "--install" ]]; then
+	if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
+		if [[ -f /usr/bin/$SCRIPT_NAME || -L /usr/bin/$SCRIPT_NAME ]]; then
+			sudo rm /usr/bin/$SCRIPT_NAME
+		fi
+		
+		sudo cp $(readlink -f $0) /usr/bin/$SCRIPT_NAME
+
+		echo -e "[${GREEN}${BOLD}OK${NC}] instalar script"
+	else
+		echo -e "[${RED}${BOLD}ERROR${NC}] instalar script: ya esta instalado"
+	fi
 
 	exit
 fi
 
+src=`pwd $(readlink -f "$0")`
+
 for project in $@; do
 
-	cd $project
+	if [[ -d `realpath -m $project`"/.git" ]]; then
 
-	printf "updating -> ${CYAN}${BOLD}`basename $project`${NC}... \n"
-	git remote update
+		cd $project
 
-	UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
-    LOCAL=$(git rev-parse @)
-    REMOTE=$(git rev-parse $UPSTREAM)
-    BASE=$(git merge-base @ $UPSTREAM)
+		printf "updating -> ${CYAN}${BOLD}`basename $project`${NC}... \n"
+		git remote update
 
-	printf "status: "
-	if [[ $LOCAL = $REMOTE ]]; then
-	    printf "${GREEN}${BOLD}up-to-date${NC} \n"
-	elif [[ $LOCAL = $BASE ]]; then
+		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+	    LOCAL=$(git rev-parse @)
+	    REMOTE=$(git rev-parse $UPSTREAM)
+	    BASE=$(git merge-base @ $UPSTREAM)
 
-	    printf "${YELLOW}${BOLD}pulling...${NC} \n"
+		printf "status: "
+		if [[ $LOCAL = $REMOTE ]]; then
+		    printf "${GREEN}${BOLD}up-to-date${NC} \n\n"
+		elif [[ $LOCAL = $BASE ]]; then
 
-		git stash
-		git pull
+		    printf "${YELLOW}${BOLD}pulling...${NC} \n"
 
-		printf "status: ${GREEN}${BOLD}updated${NC} \n"
+			git stash
+			git pull
 
-	elif [[ $REMOTE = $BASE ]]; then
-	    printf "${RED}${BOLD}need to push${NC} \n"
+			printf "status: ${GREEN}${BOLD}updated${NC} \n\n"
+
+		elif [[ $REMOTE = $BASE ]]; then
+		    printf "${RED}${BOLD}need to push${NC} \n\n"
+		else
+		    printf "${REED}${BOLD}diverged${NC} \n\n"
+		fi
+
+		cd $src
 	else
-	    printf "${REED}${BOLD}diverged${NC} \n"
+		printf "[${RED}${BOLD}ERROR${NC}] `realpath -m $project`: no existe o no contiene algún proyecto git\n\n"
 	fi
-
 done
