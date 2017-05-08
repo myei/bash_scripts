@@ -1,0 +1,31 @@
+/**
+ *	Create root -> Mongo 2
+ **/
+db.createUser({
+    user: "superman",
+    pwd: "4r1st0t3l3s",
+    roles: [
+              { role: "userAdminAnyDatabase", db: "admin" },
+              { role: "readWriteAnyDatabase", db: "admin" },
+              { role: "dbAdminAnyDatabase", db: "admin" },
+              { role: "clusterAdmin", db: "admin" }
+           ]
+});
+
+/**
+ *	Create root -> Mongo 3
+ **/
+use admin;
+db.createUser({ user: "superman", pwd: "4r1st0t3l3s", roles: ["root"] });
+
+/**
+ *	Create owner of database
+ **/
+use Fingerprint;
+db.createUser({ user: "staff", pwd: "g4l1l30", roles: ["dbOwner"] });
+
+/**
+ *	Starting and accesing
+ **/
+sudo mongod --auth --dbpath /var/lib/mongodb
+mongo -u superman -p --authenticationDatabase "admin"
