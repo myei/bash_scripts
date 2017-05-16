@@ -28,6 +28,7 @@ PURPLE='\e[95m'
 WHITE='\e[97m'
 YELLOW='\e[93m'
 NC='\033[0m'
+I='\e[3m'
 
 # F O N T S
 BOLD='\e[1m'
@@ -64,7 +65,7 @@ for project in $@; do
 
 		cd $project
 
-		printf "updating -> ${CYAN}${BOLD}`basename $project`${NC}... \n"
+		printf "updating -> ${CYAN}${BOLD}`basename $project`${NC} on branch: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
 		git remote update
 
 		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
