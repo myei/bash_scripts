@@ -65,7 +65,7 @@ for project in $@; do
 
 		cd $project
 
-		printf "updating -> ${CYAN}${BOLD}`basename $project`${NC} on branch: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
+		printf "updating -> ${CYAN}${BOLD}`basename $project`${NC} listening on: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
 		git remote update
 
 		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
