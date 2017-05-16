@@ -14,9 +14,9 @@
 #
 ##########################################################
 
-DIR="/data/backup/mongo/"
-PORT="27017"
-HOST="localhost"
+DIR="/home/mgil/testing-||/"
+PORT="27050"
+HOST="demo.lorebi.com"
 
 if [[ $# -eq 0 ]]; then
 	printf "error: Argumentos inválidos \n\n"
@@ -62,12 +62,12 @@ for db in ${DB[*]}; do
 	printf "Respaldando ${db} en ${DIR}${db}_`date +%d-%m-%Y` \n"
 	
 	# REALIZO EL BACKUP A LA BASE DE DATOS
-	mongodump --host $HOST --port $PORT --db $db --out $DIR$db'_'`date +%d-%m-%Y`
+	mongodump --host $HOST --port $PORT --db $db --user superman --authenticationDatabase "admin" --out $DIR$db'_'`date +%d-%m-%Y`
 
 	printf "Restaurando respaldo en ${db}_backup \n"
 
 	# EJECUTO EL RESTORE CREADO ANTERIORMENTE EN LA BASE DE DATOS DE RESPALDO
-	mongorestore --host $HOST --port $PORT --db $db"_backup" $DIR$db'_'`date +%d-%m-%Y`"/$db"
+	mongorestore --host $HOST --port $PORT --db $db"_backup" --user superman --authenticationDatabase "admin" $DIR$db'_'`date +%d-%m-%Y`"/$db"
 
 done
 
