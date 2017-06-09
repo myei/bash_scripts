@@ -1,2 +1,2 @@
-_test.sh merge=context
-otro merge=context
+_test.sh merge=ours
+otro merge=ours
