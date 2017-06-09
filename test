@@ -34,4 +34,4 @@ fi
 # 	echo $repo
 # done
 
-TESTING=PROD
+TESTING=DEV
