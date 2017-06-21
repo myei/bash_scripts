@@ -124,7 +124,7 @@ elif [[ $1 = "-i" || $1 = "--install" ]]; then
 	exit
 fi
 
-confirm $YELLOW "\nEstá seguro de generar ->${CYAN}${BOLD} ${DNS} ${YELLOW} con destino ->${CYAN}${BOLD} ${TARGET} "
+confirm $YELLOW "\n	Está seguro de generar ->${CYAN}${BOLD} ${DNS} ${YELLOW} con destino ->${CYAN}${BOLD} ${TARGET} "
 
 #############################################################
 # 		C O N F I G U R A N D O   E L   B I N D 
