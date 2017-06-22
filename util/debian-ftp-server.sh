@@ -1,7 +1,17 @@
 #!/bin/bash
 
-apt-get update
-apt-get install proftpd
+if [[ ! -d /etc/proftpd ]]; then
+        printf "[BAD]: Validando paquete proftpd \n"
+
+        printf "Actualizando repositorios: \n"
+        apt-get update
+        printf "Instalando proftpd: \n"
+        apt-get install proftpd -y
+fi
+
+printf "[OK]: Validando paquete proftpd \n"
+
+printf "Habilitando usuario anonimo y deshabilitando acceso root: \n"
 
 echo -e "
 # Disabling root access
@@ -11,7 +21,7 @@ echo -e "
 </Global>
 
 # Enabling anonymous access
-<Anonymous /home/content>
+<Anonymous /var/www/html/images>
         user ftp
         Group nogroup
                 <Limit LOGIN>
@@ -28,3 +38,6 @@ echo -e "
                         </Limit>
                 </Directory>
 </Anonymous>" >> /etc/proftpd/proftpd.conf
+
+printf "Estado del servicio: \n"
+/etc/init.d/proftpd restart
