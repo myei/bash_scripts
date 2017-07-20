@@ -1,4 +1,6 @@
-# Este repo contiene scripts utilitarios que he desarrollado a medida de las necesidades que se me han presentado
+# Bash Scripts Utilities
+
+Este repo contiene scripts utilitarios que he desarrollado a medida de las necesidades que se me han presentado.
 
 Contiene categorías como:
 
