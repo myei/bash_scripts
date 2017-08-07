@@ -61,7 +61,7 @@ src=`pwd $(readlink -f "$0")`
 
 for project in $@; do
 
-	if [[ -d `realpath -m $project`"/.git" ]]; then
+	if [[ -d `realpath $project`"/.git" ]]; then
 
 		cd $project
 
@@ -93,6 +93,6 @@ for project in $@; do
 
 		cd $src
 	else
-		printf "[${RED}${BOLD}ERROR${NC}] `realpath -m $project`: no existe o no contiene algún proyecto git\n\n"
+		printf "[${RED}${BOLD}ERROR${NC}] `realpath $project`: no existe o no contiene algún proyecto git\n\n"
 	fi
 done
