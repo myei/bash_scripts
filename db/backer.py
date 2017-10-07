@@ -1,13 +1,15 @@
 from _cffi_backend import string
+from math import trunc
 from string import ascii_letters, printable
 from textwrap import wrap
 from uuid import uuid4
-from subprocess import call
+from blessings import Terminal
+from termcolor import colored
 
 import pickle
 import os
-
 import sys
+import subprocess
 
 
 class Encoder:
@@ -25,10 +27,11 @@ class Encoder:
             self._alphabet[char] = uuid4().hex[0:4]
 
     def mess_up(self, text):
-        upper = round(len(text) / 2)
+        upper = round(len(text) / 2) if not len(text) % 2 else trunc(len(text) / 2)
         downer = 0
         count = 0
 
+        self._messy = ''
         for i in text:
             self._messy += text[downer] if count % 2 else text[upper]
 
@@ -39,6 +42,7 @@ class Encoder:
     def encode(self, text):
         self.mess_up(text)
 
+        self._encoded = ''
         for char in self._messy:
             self._encoded += self._alphabet[char]
 
@@ -48,6 +52,7 @@ class Encoder:
         deciphered = ''
 
         try:
+            self._decoded = ''
             for part in wrap(text, 4):
                 deciphered += list(self._alphabet.keys())[list(self._alphabet.values()).index(part)]
 
@@ -66,25 +71,172 @@ class Encoder:
 
         return self._decoded
 
+    def json_encode(self, json):
+        _json = {}
 
-if __name__ == '__main__' and len(sys.argv) > 2:
+        for i in json:
+            _json[i] = self.encode(json[i])
+
+        return _json
+
+    def json_decode(self, json):
+        _json = {}
+
+        for i in json:
+            _json[i] = self.decode(json[i])
+
+        return _json
+
+
+class Backup:
+
+    pool_path = '/var/backer-db/'
+
+    defs = {
+        'mysql': {
+            'port': '3306',
+            'host': 'localhost'
+        },
+        'mongodb': {
+            'port': '27017',
+            'host': 'localhost'
+        }
+    }
+
+    def __init__(self, pool, db_name):
+        self.pool_name = pool
+        self.db_name = db_name
+        self.pool = {}
+
+        os.system('mkdir -p ' + Backup.pool_path)
+
+    def make(self):
+        pool = self.get_pool()
+
+        if bool(pool):
+            actions = {
+                'mysql': 'mysqldump -u ' + pool['user'] + ' --password="' + pool['psw'] +
+                          '" -P ' + pool['port'] + ' --routines --opt ' + self.db_name + ' > ' +
+                          Backup.pool_path + pool['name'] + '/' + self.db_name + '_`date +%d-%m-%Y`.sql &>/dev/null',
+                'mongodb': 'mongodump --host ' + pool['host'] + ' --port ' + pool['port'] + ' --db ' + self.db_name +
+                          ' -u ' + pool['user'] + ' -p ' + pool['psw'] + ' --authenticationDatabase "admin" --out ' +
+                          Backup.pool_path + pool['name'] + '/' + self.db_name + '_`date +%d-%m-%Y` &>/dev/null'
+            }
+
+            os.system(actions.get(pool['engine']))
+
+        else:
+            print(t.bold_red('There is no pool named: ' + self.pool_name + ', please add it'))
+
+    @staticmethod
+    def list():
+        if subprocess.getoutput(['ls ' + Backup.pool_path + ' | cut -f 1 -d "." | sort | wc -l']) == '0':
+            print(t.bold_yellow('No tiene pools registrados'))
+        else:
+            print(t.bold_green(subprocess.getoutput(['ls ' + Backup.pool_path + ' | cut -f 1 -d "." | sort'])))
+
+    @staticmethod
+    def create_pool():
+        try:
+            pool = {}
+            print(t.bold_cyan('Ingrese la información de su nuevo pool: \n'))
+
+            pool['name'] = Backup.validate(input(t.bold_yellow('Nombre: ')))
+
+            print(t.bold_yellow('Seleccione su manejador: \n'))
+
+            pools = list(Backup.defs)
+            for item in range(len(pools)):
+                print('   [' + t.bold_cyan(str(item)) + "]", pools[item])
+
+            p = input(t.bold_yellow('\nIngrese su selección: '))
+
+            pool['engine'] = pools[int(p)] if p != '' and int(p) < len(pools) else Backup.validate('')
+            pool['user'] = Backup.validate(input(t.bold_yellow('Usuario: ')))
+            pool['psw'] = Backup.validate(input(t.bold_yellow('Password: ')))
+            pool['host'] = Backup.validate(input(t.bold_yellow('Hostname [' + Backup.defs[pool['engine']].get('host') +
+                                                               ']: ')), Backup.defs[pool['engine']].get('host'))
+            pool['port'] = Backup.validate(input(t.bold_yellow('Puerto [' + Backup.defs[pool['engine']].get('port') +
+                                                               ']:')), Backup.defs[pool['engine']].get('port'))
+
+            os.system('mkdir -p ' + Backup.pool_path + pool['name'])
+            pickle.dump(Encoder().json_encode(pool), open(Backup.pool_path + pool['name'] + '.pkl', 'wb'))
+        except Exception:
+            pass
+
+    def get_pool(self):
+        try:
+            enc = Encoder()
+
+            self.pool = pickle.load(open(Backup.pool_path + self.pool_name + '.pkl', 'rb'))
+            self.pool = enc.json_decode(self.pool)
+
+        except Exception:
+            pass
+
+        return self.pool
+
+    def remove_pool(self):
+        subprocess.getoutput(['rm ' + Backup.pool_path + self.pool_name + '.pkl'])
+
+    @staticmethod
+    def validate(_in, default=None):
+        if len(_in) > 0:
+            return _in
+        elif default is not None:
+            return default
+        else:
+            print(t.bold_red('Debe ingresar este campo'))
+            exit(2)
+
+    @staticmethod
+    def usage():
+        print("error: Argumentos inválidos \n")
+        print("backer usage: backer [ dbname1 dbname2 ... dbnameN ] \n")
+        print("	dbnameX: Nombre de las bases de datos a respaldar \n")
+        exit()
+
+
+if __name__ == '__main__' and len(sys.argv) > 1:
+
+    t = Terminal()
 
     args = {}
-    for i in range(len(sys.argv) - 1):
-        if i % 2 and i < len(sys.argv):
-            args[sys.argv[i]] = sys.argv[i + 1]
-        else:
-            args[sys.argv[i]] = 0
+    _args = sys.argv
 
-    print(args)
+    for i in range(len(_args)):
+        if i % 2 and i < len(_args) - 1:
+            args[_args[i]] = _args[i + 1]
+        elif i == len(_args) - 1 and not len(_args) % 2:
+            args[_args[i]] = 0
 
-    pickle.dump({'user': 'pedrito', 'pass': 'testing'}, open('/backer-db/pedrito.pkl', 'wb'))
-    pickle.dump({'user': 'ana', 'pass': 'testing'}, open('/backer-db/ana.pkl', 'wb'))
-    data = pickle.load(open('/backer-db/pedrito.pkl', 'rb'))
-    print(data['user'])
+    def_args = {
+        'pool': ['-p', '--pool'],
+        'db': ['-db', '--databases']
+    }
+
+    if '--create-pool' in args or '-cp' in args:
+        Backup.create_pool()
+    elif '--list-pools' in args or '-lp' in args:
+        Backup.list()
+    elif '--remove-pool' in args or '-rp' in args:
+        Backup.remove_pool()
+    else:
+        requests = [ii for ii in args.keys()]
+        for ii in requests:
+            found = ([i for i in def_args if ii in def_args[i]])
+
+            if len(found) == 0:
+                Backup.usage()
+
+            def_args[found[0]] = args[ii]
+
+        backup = Backup(def_args['pool'], def_args['db'])
+        backup.make()
+
+    # backup = Backup(p, args['-db'])
+    # print(backup.get_pool())
 
 else:
-    print("error: Argumentos inválidos \n")
-    print("backer usage: backer [ dbname1 dbname2 ... dbnameN ] \n")
-    print("	dbnameX: Nombre de las bases de datos a respaldar \n")
-# os.system('mysqldump -u $USER --routines --opt chatadmin > /db_`date +%d-%m-%Y`.sql')
+    Backup.usage()
+    print('a')
