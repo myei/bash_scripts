@@ -1,10 +1,8 @@
-from _cffi_backend import string
 from math import trunc
-from string import ascii_letters, printable
+from string import printable
 from textwrap import wrap
 from uuid import uuid4
 from blessings import Terminal
-from termcolor import colored
 
 import pickle
 import os
@@ -103,7 +101,7 @@ class Backup:
         }
     }
 
-    def __init__(self, pool, db_name):
+    def __init__(self, pool, db_name=None):
         self.pool_name = pool
         self.db_name = db_name
         self.pool = {}
@@ -112,55 +110,59 @@ class Backup:
 
     def make(self):
         pool = self.get_pool()
+        dbs = self.db_name.split(' ')
 
         if bool(pool):
-            actions = {
-                'mysql': 'mysqldump -u ' + pool['user'] + ' --password="' + pool['psw'] +
-                          '" -P ' + pool['port'] + ' --routines --opt ' + self.db_name + ' > ' +
-                          Backup.pool_path + pool['name'] + '/' + self.db_name + '_`date +%d-%m-%Y`.sql &>/dev/null',
-                'mongodb': 'mongodump --host ' + pool['host'] + ' --port ' + pool['port'] + ' --db ' + self.db_name +
-                          ' -u ' + pool['user'] + ' -p ' + pool['psw'] + ' --authenticationDatabase "admin" --out ' +
-                          Backup.pool_path + pool['name'] + '/' + self.db_name + '_`date +%d-%m-%Y` &>/dev/null'
-            }
+            for db in dbs:
+                actions = {
+                    'mysql': 'mysqldump -u ' + pool['user'] + ' --password="' + pool['psw'] +
+                             '" -P ' + pool['port'] + ' --routines --opt ' + db + ' > ' +
+                             Backup.pool_path + pool['name'] + '/' + db + '_`date +%d-%m-%Y`.sql &>/dev/null',
 
-            os.system(actions.get(pool['engine']))
+                    'mongodb': 'mongodump --host ' + pool['host'] + ' --port ' + pool['port'] + ' --db ' + db +
+                               ' -u ' + pool['user'] + ' -p ' + pool['psw'] + ' --authenticationDatabase "admin" --out ' +
+                               Backup.pool_path + pool['name'] + '/' + db + '_`date +%d-%m-%Y` &>/dev/null'
+                }
 
-        else:
-            print(t.bold_red('There is no pool named: ' + self.pool_name + ', please add it'))
+                os.system(actions.get(pool['engine']))
+
+                print(t.bold_green('Succefully created: ' + db + '_' + subprocess.getoutput('date +%d-%m-%Y')))
 
     @staticmethod
     def list():
         if subprocess.getoutput(['ls ' + Backup.pool_path + ' | cut -f 1 -d "." | sort | wc -l']) == '0':
-            print(t.bold_yellow('No tiene pools registrados'))
+            print(t.bold_yellow('There is no pools yet...'))
         else:
-            print(t.bold_green(subprocess.getoutput(['ls ' + Backup.pool_path + ' | cut -f 1 -d "." | sort'])))
+            print(t.bold_green(subprocess.getoutput(['ls ' + Backup.pool_path + ' | grep .pkl | cut -f 1 -d "." | sort'])))
 
     @staticmethod
     def create_pool():
         try:
             pool = {}
-            print(t.bold_cyan('Ingrese la información de su nuevo pool: \n'))
+            print(t.bold_cyan('Please add your new pool info: \n'))
 
-            pool['name'] = Backup.validate(input(t.bold_yellow('Nombre: ')))
+            pool['name'] = Backup.validate(input(t.bold_yellow('Name: ')))
 
-            print(t.bold_yellow('Seleccione su manejador: \n'))
+            print(t.bold_yellow('Which engine?: \n'))
 
             pools = list(Backup.defs)
             for item in range(len(pools)):
                 print('   [' + t.bold_cyan(str(item)) + "]", pools[item])
 
-            p = input(t.bold_yellow('\nIngrese su selección: '))
+            p = input(t.bold_yellow('\nMake your choice: '))
 
             pool['engine'] = pools[int(p)] if p != '' and int(p) < len(pools) else Backup.validate('')
-            pool['user'] = Backup.validate(input(t.bold_yellow('Usuario: ')))
-            pool['psw'] = Backup.validate(input(t.bold_yellow('Password: ')))
+            pool['user'] = Backup.validate(input(t.bold_yellow('Username: ')))
+            pool['psw'] = input(t.bold_yellow('Password: '))
             pool['host'] = Backup.validate(input(t.bold_yellow('Hostname [' + Backup.defs[pool['engine']].get('host') +
                                                                ']: ')), Backup.defs[pool['engine']].get('host'))
-            pool['port'] = Backup.validate(input(t.bold_yellow('Puerto [' + Backup.defs[pool['engine']].get('port') +
+            pool['port'] = Backup.validate(input(t.bold_yellow('Port [' + Backup.defs[pool['engine']].get('port') +
                                                                ']:')), Backup.defs[pool['engine']].get('port'))
 
             os.system('mkdir -p ' + Backup.pool_path + pool['name'])
             pickle.dump(Encoder().json_encode(pool), open(Backup.pool_path + pool['name'] + '.pkl', 'wb'))
+
+            print(t.bold_green('\n Succefully created: ' + pool['name']))
         except Exception:
             pass
 
@@ -172,12 +174,17 @@ class Backup:
             self.pool = enc.json_decode(self.pool)
 
         except Exception:
-            pass
+            print(t.bold_red('There is no pool named: ' + self.pool_name + ', please add it'))
+            exit(2)
 
         return self.pool
 
     def remove_pool(self):
-        subprocess.getoutput(['rm ' + Backup.pool_path + self.pool_name + '.pkl'])
+        if bool(self.get_pool()):
+            os.system('rm ' + Backup.pool_path + self.pool_name + '.pkl')
+            os.system('rm -r ' + Backup.pool_path + self.pool_name)
+
+            print(t.bold_green('Succefully removed: ' + self.pool_name))
 
     @staticmethod
     def validate(_in, default=None):
@@ -191,9 +198,18 @@ class Backup:
 
     @staticmethod
     def usage():
-        print("error: Argumentos inválidos \n")
-        print("backer usage: backer [ dbname1 dbname2 ... dbnameN ] \n")
-        print("	dbnameX: Nombre de las bases de datos a respaldar \n")
+        print("error: Invalid args \n")
+        print("backer usage: backer [ -ARGS ] [ VALUE ] \n")
+        print("              backer -p pool -db db \n")
+        print("              backer -p pool -db \"db1 db2\" \n")
+        print("pools usage: backer [ -OPTIONS ] \n")
+        print(" -ARGS:")
+        print("  -p, --pool: Pool name")
+        print("  -db, --databases: Database names as follows -> name or \"name1 name2\" ")
+        print("\n -OPTIONS:")
+        print("  -cp, --create-pool: Start prompt")
+        print("  -lp, --list-pools: To get a list of pools")
+        print("  -rp, --remove-pool: To remove a pool")
         exit()
 
 
@@ -204,23 +220,23 @@ if __name__ == '__main__' and len(sys.argv) > 1:
     args = {}
     _args = sys.argv
 
+    def_args = {
+        'pool': ['-p', '--pool'],
+        'db': ['-db', '--databases']
+    }
+
     for i in range(len(_args)):
         if i % 2 and i < len(_args) - 1:
             args[_args[i]] = _args[i + 1]
         elif i == len(_args) - 1 and not len(_args) % 2:
             args[_args[i]] = 0
 
-    def_args = {
-        'pool': ['-p', '--pool'],
-        'db': ['-db', '--databases']
-    }
-
     if '--create-pool' in args or '-cp' in args:
         Backup.create_pool()
     elif '--list-pools' in args or '-lp' in args:
         Backup.list()
     elif '--remove-pool' in args or '-rp' in args:
-        Backup.remove_pool()
+        Backup(args['-rp'] if '-rp' in args else args['--remove-pool']).remove_pool()
     else:
         requests = [ii for ii in args.keys()]
         for ii in requests:
@@ -234,9 +250,5 @@ if __name__ == '__main__' and len(sys.argv) > 1:
         backup = Backup(def_args['pool'], def_args['db'])
         backup.make()
 
-    # backup = Backup(p, args['-db'])
-    # print(backup.get_pool())
-
 else:
     Backup.usage()
-    print('a')
