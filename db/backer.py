@@ -1,3 +1,4 @@
+from datetime import datetime
 from math import trunc
 from string import printable
 from textwrap import wrap
@@ -7,7 +8,7 @@ from blessings import Terminal
 import pickle
 import os
 import sys
-import subprocess
+import subprocess as sp
 
 
 class Encoder:
@@ -116,33 +117,35 @@ class Backup:
 
         if bool(pool):
             for db in dbs:
+                db_path = Backup.pool_path + pool['name'] + '/' + db + '/'
+                os.system('mkdir -p ' + db_path)
+
                 actions = {
                     'mysql': 'mysqldump -u ' + pool['user'] + ' --password="' + pool['psw'] +
-                             '" -P ' + pool['port'] + ' --routines --opt ' + db + ' > ' +
-                             Backup.pool_path + pool['name'] + '/' + db + '_`date +%d-%m-%Y`.sql &>/dev/null',
+                             '" -P ' + pool['port'] + ' --routines --opt ' + db + '>' + db_path + db + '_`date +%d-%m-%Y`.sql &>/dev/null',
 
                     'mongodb': 'mongodump --host ' + pool['host'] + ' --port ' + pool['port'] + ' --db ' + db +
                                ' -u ' + pool['user'] + ' -p ' + pool['psw'] + ' --authenticationDatabase "admin" --out ' +
-                               Backup.pool_path + pool['name'] + '/' + db + '_`date +%d-%m-%Y` &>/dev/null'
+                               db_path + db + '/' + db + '_`date +%d-%m-%Y` &>/dev/null'
                 }
 
                 os.system(actions.get(pool['engine']))
 
-                print(t.bold_green('Succefully created: ' + db + '_' + subprocess.getoutput('date +%d-%m-%Y')))
+                print(t.bold_green('Succefully created: ' + db + '_' + sp.getoutput('date +%d-%m-%Y')))
 
     @staticmethod
     def list():
         os.system('mkdir -p ' + Backup.pool_path)
 
-        if subprocess.getoutput(['ls ' + Backup.pool_path + ' | cut -f 1 -d "." | sort | wc -l']) == '0':
+        if sp.getoutput(['ls ' + Backup.pool_path + ' | cut -f 1 -d "." | sort | wc -l']) == '0':
             print(t.bold_yellow('There is no pools yet...'))
         else:
-            print(t.bold_green(subprocess.getoutput(['ls ' + Backup.pool_path + ' | grep .pkl | cut -f 1 -d "." | sort'])))
+            print(t.bold_green(sp.getoutput(['ls ' + Backup.pool_path + ' | grep .pkl | cut -f 1 -d "." | sort'])))
 
     @staticmethod
     def create_pool():
         os.system('mkdir -p ' + Backup.pool_path)
-        
+
         try:
             pool = {}
             print(t.bold_cyan('Please add your new pool info: \n'))
@@ -202,6 +205,29 @@ class Backup:
             print(t.bold_red('Debe ingresar este campo'))
             exit(2)
 
+    def cleaner(self):
+        pool = self.get_pool()
+        databases = self.db_name.split(' ')
+
+        for db in databases:
+            path = Backup.pool_path + self.pool_name + '/' + db + '/'
+            backups = sp.getoutput('ls ' + path)
+            backups = backups.split('\n')
+
+            ba = [datetime.strptime(x[-14:-4], '%d-%m-%Y') for x in backups]
+            ba.sort()
+
+            for x in ba[:-5]:
+                actions = {
+                    'mysql': os.remove(path + db + '_' + x.strftime('%d-%m-%Y') + '.sql'),
+                    'mongodb': os.removedirs(path + db + '_' + x.strftime('%d-%m-%Y'))
+                }
+
+                actions.get(pool['engine'])
+
+        print(t.bold_yellow('Databases cleaned...'))
+
+
     @staticmethod
     def usage():
         print("error: Invalid args \n")
@@ -237,19 +263,29 @@ if __name__ == '__main__' and len(sys.argv) > 1:
         elif i == len(_args) - 1 and not len(_args) % 2:
             args[_args[i]] = 0
 
+    requests = [ii for ii in args.keys()]
+    for ii in requests:
+        found = ([i for i in def_args if ii in def_args[i]])
+
+        if len(found) == 0:
+            continue
+
+        def_args[found[0]] = args[ii]
+
     if '--create-pool' in args or '-cp' in args:
         Backup.create_pool()
     elif '--list-pools' in args or '-lp' in args:
         Backup.list()
     elif '--remove-pool' in args or '-rp' in args:
         Backup(args['-rp'] if '-rp' in args else args['--remove-pool']).remove_pool()
+    elif '--clean' in args:
+        if 'db' in def_args:
+            Backup(def_args['pool'], args['--clean'] if args['--clean'] != 0 else def_args['db']).cleaner()
+        else:
+            Backup.usage()
     else:
-        requests = [ii for ii in args.keys()]
-        for ii in requests:
-            found = ([i for i in def_args if ii in def_args[i]])
-
-            if len(found) == 0:
-                Backup.usage()
+        if len(def_args) < 2:
+            Backup.usage()
 
             def_args[found[0]] = args[ii]
 
