@@ -94,25 +94,41 @@ class Backup:
     pool_path = '/var/backer-db/'
 
     defs = {
-        'mysql': {
-            'port': '3306',
-            'host': 'localhost'
+        'engines': {
+            'mysql': {
+                'port': '3306',
+                'host': 'localhost'
+            },
+            'mongodb': {
+                'port': '27017',
+                'host': 'localhost'
+            },
         },
-        'mongodb': {
-            'port': '27017',
-            'host': 'localhost'
+        'args': {
+            'pool': ['-p', '--pool'],
+            'db': ['-db', '--databases'],
+            'add': ['--create-pool', '-cp'],
+            'ls': ['--list-pools', '-lp'],
+            'rm': ['--remove-pool', '-rp'],
+            'cl': ['--clean']
         }
     }
 
-    def __init__(self, pool, db_name=None):
+    def __init__(self, pool=None, db_name=None):
         self.pool_name = pool
         self.db_name = db_name
         self.pool = {}
+        self.args = {}
 
         os.system('mkdir -p ' + Backup.pool_path)
 
+        self.args_builder()
+
     def make(self):
-        pool = self.get_pool()
+        if self._get_pool() is None or self.db_name is None:
+            Backup.usage()
+
+        pool = self._get_pool()
         dbs = self.db_name.split(' ')
 
         if bool(pool):
@@ -149,12 +165,14 @@ class Backup:
         try:
             pool = {}
             print(t.bold_cyan('Please add your new pool info: \n'))
+            # print(strpools[pool['engine']])
 
             pool['name'] = Backup.validate(input(t.bold_yellow('Name: ')))
 
             print(t.bold_yellow('Which engine?: \n'))
 
-            pools = list(Backup.defs)
+            pools = list(Backup.defs['engines'])
+            _pools = Backup.defs['engines']
             for item in range(len(pools)):
                 print('   [' + t.bold_cyan(str(item)) + "]", pools[item])
 
@@ -163,10 +181,10 @@ class Backup:
             pool['engine'] = pools[int(p)] if p != '' and int(p) < len(pools) else Backup.validate('')
             pool['user'] = Backup.validate(input(t.bold_yellow('Username: ')))
             pool['psw'] = input(t.bold_yellow('Password: '))
-            pool['host'] = Backup.validate(input(t.bold_yellow('Hostname [' + Backup.defs[pool['engine']].get('host') +
-                                                               ']: ')), Backup.defs[pool['engine']].get('host'))
-            pool['port'] = Backup.validate(input(t.bold_yellow('Port [' + Backup.defs[pool['engine']].get('port') +
-                                                               ']:')), Backup.defs[pool['engine']].get('port'))
+            pool['host'] = Backup.validate(input(t.bold_yellow('Hostname [' + _pools[pool['engine']].get('host') +
+                                                               ']: ')), _pools[pool['engine']].get('host'))
+            pool['port'] = Backup.validate(input(t.bold_yellow('Port [' + _pools[pool['engine']].get('port') +
+                                                               ']:')), _pools[pool['engine']].get('port'))
 
             os.system('mkdir -p ' + Backup.pool_path + pool['name'])
             pickle.dump(Encoder().json_encode(pool), open(Backup.pool_path + pool['name'] + '.pkl', 'wb'))
@@ -175,9 +193,10 @@ class Backup:
         except Exception:
             pass
 
-    def get_pool(self):
+    def _get_pool(self):
         try:
             enc = Encoder()
+            self.pool_name = str(self.pool_name)
 
             self.pool = pickle.load(open(Backup.pool_path + self.pool_name + '.pkl', 'rb'))
             self.pool = enc.json_decode(self.pool)
@@ -189,7 +208,10 @@ class Backup:
         return self.pool
 
     def remove_pool(self):
-        if bool(self.get_pool()):
+        if self.pool_name is None:
+            Backup.usage()
+
+        if bool(self._get_pool()):
             os.system('rm ' + Backup.pool_path + self.pool_name + '.pkl')
             os.system('rm -r ' + Backup.pool_path + self.pool_name)
 
@@ -206,13 +228,17 @@ class Backup:
             exit(2)
 
     def cleaner(self):
-        pool = self.get_pool()
+        pool = self._get_pool()
         databases = self.db_name.split(' ')
 
         for db in databases:
             path = Backup.pool_path + self.pool_name + '/' + db + '/'
             backups = sp.getoutput('ls ' + path)
             backups = backups.split('\n')
+
+            if len(backups) < 6:
+                print(t.bold_green(db + ' is clean...\n'))
+                continue
 
             ba = [datetime.strptime(x[-14:-4], '%d-%m-%Y') for x in backups]
             ba.sort()
@@ -227,70 +253,81 @@ class Backup:
 
         print(t.bold_yellow('Databases cleaned...'))
 
-
     @staticmethod
     def usage():
         print("error: Invalid args \n")
-        print("backer usage: backer [ -ARGS ] [ VALUE ] \n")
+        print("backer usage: backer [ -ARGS ] [ VALUE ] [ -OPTIONS] \n")
         print("              backer -p pool -db db \n")
         print("              backer -p pool -db \"db1 db2\" \n")
+        print("              backer -p pool -db \"db1 db2\" --clean (for making and auto cleaning) \n")
         print("pools usage: backer [ -OPTIONS ] \n")
         print(" -ARGS:")
         print("  -p, --pool: Pool name")
         print("  -db, --databases: Database names as follows -> name or \"name1 name2\" ")
         print("\n -OPTIONS:")
-        print("  -cp, --create-pool: Start prompt")
+        print("  -cp, --create-pool: Starts an interactive bash")
         print("  -lp, --list-pools: To get a list of pools")
         print("  -rp, --remove-pool: To remove a pool")
+        print("  --clean: To clean a spec database or a list (-db \"name1 name2\")")
         exit()
 
+    def _get_args(self):
+        self.args = {}
 
-if __name__ == '__main__' and len(sys.argv) > 1:
+        try:
+            args = {}
+            _args = sys.argv
 
-    t = Terminal()
+            for i in range(len(_args)):
+                if i % 2 and i < len(_args) - 1:
+                    args[_args[i]] = _args[i + 1]
+                elif i == len(_args) - 1 and not len(_args) % 2:
+                    args[_args[i]] = 0
 
-    args = {}
-    _args = sys.argv
+            requests = [ii for ii in args.keys()]
+            for ii in requests:
+                found = ([i for i in Backup.defs['args'] if ii in Backup.defs['args'][i]])
 
-    def_args = {
-        'pool': ['-p', '--pool'],
-        'db': ['-db', '--databases']
-    }
+                if len(found) == 0:
+                    continue
 
-    for i in range(len(_args)):
-        if i % 2 and i < len(_args) - 1:
-            args[_args[i]] = _args[i + 1]
-        elif i == len(_args) - 1 and not len(_args) % 2:
-            args[_args[i]] = 0
+                self.args[found[0]] = args[ii]
 
-    requests = [ii for ii in args.keys()]
-    for ii in requests:
-        found = ([i for i in def_args if ii in def_args[i]])
+            if not bool(self.args):
+                Backup.usage()
 
-        if len(found) == 0:
-            continue
+        except Exception:
+            pass
 
-        def_args[found[0]] = args[ii]
+        return self.args
 
-    if '--create-pool' in args or '-cp' in args:
-        Backup.create_pool()
-    elif '--list-pools' in args or '-lp' in args:
-        Backup.list()
-    elif '--remove-pool' in args or '-rp' in args:
-        Backup(args['-rp'] if '-rp' in args else args['--remove-pool']).remove_pool()
-    elif '--clean' in args:
-        if 'db' in def_args:
-            Backup(def_args['pool'], args['--clean'] if args['--clean'] != 0 else def_args['db']).cleaner()
-        else:
-            Backup.usage()
-    else:
-        if len(def_args) < 2:
-            Backup.usage()
+    def args_builder(self):
+        requested = self._get_args()
 
-            def_args[found[0]] = args[ii]
+        self.pool_name = requested['pool'] if 'pool' in requested else None
+        self.db_name = requested['db'] if 'db' in requested else None
 
-        backup = Backup(def_args['pool'], def_args['db'])
-        backup.make()
+        if 'add' in requested:
+            Backup.create_pool()
 
-else:
-    Backup.usage()
+        if 'ls' in requested:
+            Backup.list()
+
+        if 'rm' in requested:
+            self.pool_name = requested['rm'] if self.pool_name is None and 'rm' in requested else self.pool_name
+            self.remove_pool()
+
+        if 'cl' in requested:
+            self.db_name = requested['cl'] if self.db_name is None and 'cl' in requested else self.db_name
+            self.cleaner()
+
+        if 'db' in requested:
+            if 'pool' in requested:
+                self.make()
+            else:
+                Backup.usage()
+
+
+t = Terminal()
+
+Backup() if len(sys.argv) > 1 else Backup.usage()
