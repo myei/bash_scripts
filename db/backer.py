@@ -12,11 +12,12 @@ import subprocess
 
 class Encoder:
 
-    def __init__(self):
+    def __init__(self, debug=False):
         self._alphabet = {'0': 'b831', '1': 'fde8', '2': 'e51a', '3': '9dad', '4': 'ac42', '5': '837a', '6': '70c4', '7': '8d9a', '8': '2284', '9': '5d34', 'a': 'f990', 'b': '1103', 'c': 'fa40', 'd': 'fa2f', 'e': 'dfb8', 'f': '518f', 'g': 'a179', 'h': 'bc34', 'i': 'd97c', 'j': '8518', 'k': '16fb', 'l': '75a0', 'm': 'd923', 'n': 'bcc2', 'o': '5696', 'p': '8d43', 'q': '6d4a', 'r': '6285', 's': 'f93e', 't': 'ca6a', 'u': '8625', 'v': '9313', 'w': '54e2', 'x': 'c6ee', 'y': 'a373', 'z': 'e687', 'A': '1087', 'B': '7472', 'C': 'a8a0', 'D': '1620', 'E': '4004', 'F': '7171', 'G': 'f21c', 'H': 'ce6d', 'I': 'a8ae', 'J': '0b92', 'K': 'de3c', 'L': '2abc', 'M': 'ff18', 'N': 'fd97', 'O': 'f45d', 'P': '9ef6', 'Q': '52ec', 'R': '1fa0', 'S': 'a2ec', 'T': 'c711', 'U': '6b6d', 'V': 'f5f6', 'W': 'ef1e', 'X': '0878', 'Y': '026d', 'Z': '2119', '!': '946b', '"': '934a', '#': 'ad6f', '$': 'e9df', '%': '4f63', '&': '10f2', "'": 'e7a7', '(': 'b2d2', ')': 'c45f', '*': '63f5', '+': '4337', ',': '343e', '-': 'e1f7', '.': '3016', '/': 'faf6', ':': '34c6', ';': 'ae05', '<': '98cd', '=': '5fcf', '>': '723b', '?': '1ef6', '@': 'dd78', '[': '2599', '\\': 'fbb2', ']': '0c2c', '^': 'ecaf', '_': 'f1b9', '`': '3be1', '{': '0ef2', '|': '2b44', '}': '76fe', '~': 'cee5', ' ': 'ebe0'}
         self._messy = ''
         self._encoded = ''
         self._decoded = ''
+        self._debug = debug
 
     def alphabet_generator(self):
         self._alphabet = {}
@@ -65,7 +66,8 @@ class Encoder:
                 count += 1
 
         except Exception:
-            print('That text is not encoded by me or it was built with a different alphabet')
+            if self._debug:
+                print('That text is not encoded by me or it was built with a different alphabet')
 
         return self._decoded
 
@@ -130,6 +132,8 @@ class Backup:
 
     @staticmethod
     def list():
+        os.system('mkdir -p ' + Backup.pool_path)
+
         if subprocess.getoutput(['ls ' + Backup.pool_path + ' | cut -f 1 -d "." | sort | wc -l']) == '0':
             print(t.bold_yellow('There is no pools yet...'))
         else:
@@ -137,6 +141,8 @@ class Backup:
 
     @staticmethod
     def create_pool():
+        os.system('mkdir -p ' + Backup.pool_path)
+        
         try:
             pool = {}
             print(t.bold_cyan('Please add your new pool info: \n'))
