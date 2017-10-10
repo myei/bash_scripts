@@ -1,3 +1,4 @@
+from getpass import getpass
 from datetime import datetime
 from math import trunc
 from string import printable
@@ -40,7 +41,7 @@ class Encoder:
             count += 1
 
     def encode(self, text):
-        self.mess_up(text)
+        self.mess_up(text if type(text) is str else str(text))
 
         self._encoded = ''
         for char in self._messy:
@@ -165,7 +166,6 @@ class Backup:
         try:
             pool = {}
             print(t.bold_cyan('Please add your new pool info: \n'))
-            # print(strpools[pool['engine']])
 
             pool['name'] = Backup.validate(input(t.bold_yellow('Name: ')))
 
@@ -180,7 +180,7 @@ class Backup:
 
             pool['engine'] = pools[int(p)] if p != '' and int(p) < len(pools) else Backup.validate('')
             pool['user'] = Backup.validate(input(t.bold_yellow('Username: ')))
-            pool['psw'] = input(t.bold_yellow('Password: '))
+            pool['psw'] = getpass(t.bold_yellow('Password: '))
             pool['host'] = Backup.validate(input(t.bold_yellow('Hostname [' + _pools[pool['engine']].get('host') +
                                                                ']: ')), _pools[pool['engine']].get('host'))
             pool['port'] = Backup.validate(input(t.bold_yellow('Port [' + _pools[pool['engine']].get('port') +
@@ -189,7 +189,7 @@ class Backup:
             os.system('mkdir -p ' + Backup.pool_path + pool['name'])
             pickle.dump(Encoder().json_encode(pool), open(Backup.pool_path + pool['name'] + '.pkl', 'wb'))
 
-            print(t.bold_green('\n Succefully created: ' + pool['name']))
+            print(t.bold_green('\n Successfully created: ' + pool['name']))
         except Exception:
             pass
 
@@ -224,7 +224,7 @@ class Backup:
         elif default is not None:
             return default
         else:
-            print(t.bold_red('Debe ingresar este campo'))
+            print(t.bold_red('This field is required'))
             exit(2)
 
     def cleaner(self):
@@ -317,17 +317,18 @@ class Backup:
             self.pool_name = requested['rm'] if self.pool_name is None and 'rm' in requested else self.pool_name
             self.remove_pool()
 
-        if 'cl' in requested:
-            self.db_name = requested['cl'] if self.db_name is None and 'cl' in requested else self.db_name
-            self.cleaner()
-
         if 'db' in requested:
             if 'pool' in requested:
                 self.make()
             else:
                 Backup.usage()
 
+        if 'cl' in requested:
+            self.db_name = requested['cl'] if self.db_name is None and 'cl' in requested else self.db_name
+            self.cleaner()
+
 
 t = Terminal()
 
 Backup() if len(sys.argv) > 1 else Backup.usage()
+
