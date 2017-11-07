@@ -69,7 +69,7 @@ class Encoder:
 
         except Exception:
             if self._debug:
-                print('That text is not encoded by me or it was built with a different alphabet')
+                print(t.bold_red('That text is not encoded by me or it was built with a different alphabet'))
 
         return self._decoded
 
@@ -111,7 +111,8 @@ class Backup:
             'add': ['--create-pool', '-cp'],
             'ls': ['--list-pools', '-lp'],
             'rm': ['--remove-pool', '-rp'],
-            'cl': ['--clean']
+            'cl': ['--clean'],
+            'days': ['--days', '-d']
         }
     }
 
@@ -138,12 +139,25 @@ class Backup:
                 os.system('mkdir -p ' + db_path)
 
                 actions = {
-                    'mysql': 'mysqldump -u ' + pool['user'] + ' --password="' + pool['psw'] +
-                             '" -P ' + pool['port'] + ' --routines --opt ' + db + '>' + db_path + db + '_`date +%d-%m-%Y`.sql &>/dev/null',
+                    'mysql': 'mysqldump -h {host} -u {user} --password="{psw}" -P {port} --routines --opt {db} > '
+                             '{path}_`date +%d-%m-%Y`.sql &>/dev/null'.format(
+                                host=pool['host'],
+                                user=pool['user'],
+                                psw=pool['psw'],
+                                port=pool['port'],
+                                db=db,
+                                path=db_path + db
+                             ),
 
-                    'mongodb': 'mongodump --host ' + pool['host'] + ' --port ' + pool['port'] + ' --db ' + db +
-                               ' -u ' + pool['user'] + ' -p ' + pool['psw'] + ' --authenticationDatabase "admin" --out ' +
-                               db_path + db + '/' + db + '_`date +%d-%m-%Y` &>/dev/null'
+                    'mongodb': 'mongodump --host {host} --port {port} --db {db} -u {user} -p {psw} '
+                               '--authenticationDatabase "admin" --out {path}_`date +%d-%m-%Y` &>/dev/null'.format(
+                                    host=pool['host'],
+                                    user=pool['user'],
+                                    psw=pool['psw'],
+                                    port=pool['port'],
+                                    db=db,
+                                    path=db_path + db + '/' + db
+                                )
                 }
 
                 os.system(actions.get(pool['engine']))
@@ -227,7 +241,7 @@ class Backup:
             print(t.bold_red('This field is required'))
             exit(2)
 
-    def cleaner(self):
+    def cleaner(self, days=5):
         pool = self._get_pool()
         databases = self.db_name.split(' ')
 
@@ -236,20 +250,18 @@ class Backup:
             backups = sp.getoutput('ls ' + path)
             backups = backups.split('\n')
 
-            if len(backups) < 6:
+            if len(backups) <= days:
                 print(t.bold_green(db + ' is clean...\n'))
                 continue
 
             ba = [datetime.strptime(x[-14:-4], '%d-%m-%Y') for x in backups]
             ba.sort()
 
-            for x in ba[:-5]:
-                actions = {
-                    'mysql': os.remove(path + db + '_' + x.strftime('%d-%m-%Y') + '.sql'),
-                    'mongodb': os.removedirs(path + db + '_' + x.strftime('%d-%m-%Y'))
-                }
-
-                actions.get(pool['engine'])
+            for x in ba[:-days]:
+                if pool['engine'] == 'mysql':
+                    os.remove(path + db + '_' + x.strftime('%d-%m-%Y') + '.sql')
+                else:
+                    os.removedirs(path + db + '_' + x.strftime('%d-%m-%Y'))
 
         print(t.bold_yellow('Databases cleaned...'))
 
@@ -268,7 +280,8 @@ class Backup:
         print("  -cp, --create-pool: Starts an interactive bash")
         print("  -lp, --list-pools: To get a list of pools")
         print("  -rp, --remove-pool: To remove a pool")
-        print("  --clean: To clean a spec database or a list (-db \"name1 name2\")")
+        print("  --clean: To clean a specified database or a list (-db \"name1 name2\")")
+        print("  -d, --days: if --clean is passed will set the last days to keep at cleaning")
         exit()
 
     def _get_args(self):
@@ -325,10 +338,10 @@ class Backup:
 
         if 'cl' in requested:
             self.db_name = requested['cl'] if self.db_name is None and 'cl' in requested else self.db_name
-            self.cleaner()
+            self.cleaner(int(requested['days']) if 'days' in requested else 5)
 
 
 t = Terminal()
 
-Backup() if len(sys.argv) > 1 else Backup.usage()
+Backup()
 
