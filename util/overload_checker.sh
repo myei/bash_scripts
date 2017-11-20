@@ -9,12 +9,12 @@ if [[ ${#} == 0 ]]; then
 	exit 1
 fi
 
-if [[ ${cpu%.*} > $1 ]]; then
+if [[ ${cpu%.*} -gt $1 ]]; then
 	echo "`date -u +%Y-%m-%dT%H:%M:%S` cpu usage: $cpu%" >> $log
 	echo "`date -u +%Y-%m-%dT%H:%M:%S` cpu usage: $cpu%" | $(mail -s "WARN DED779" manuelyeixon@gmail.com)
 fi
 
-if [[ ${memory%.*} > $1 ]]; then
+if [[ ${memory%.*} -gt $1 ]]; then
 	echo "`date -u +%Y-%m-%dT%H:%M:%S` memory usage: $memory%" >> $log
 	echo "`date -u +%Y-%m-%dT%H:%M:%S` memory usage: $memory%" | $(mail -s "WARN DED779" manuelyeixon@gmail.com)
 fi
