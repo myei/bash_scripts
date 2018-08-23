@@ -1,10 +1,10 @@
-from sys import argv as args
-from sqlalchemy import create_engine
-from blessings import Terminal
-from os import system, makedirs
-
 import random
 import string
+from os import system, makedirs
+from sys import argv as args
+
+from blessings import Terminal
+from sqlalchemy import create_engine
 
 
 class WPMaker:
