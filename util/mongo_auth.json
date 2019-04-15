@@ -21,8 +21,8 @@ db.createUser({ user: "superman", pwd: "4r1st0t3l3s", roles: ["root"] });
 /**
  *	Create owner of database
  **/
-use Fingerprint;
-db.createUser({ user: "staff", pwd: "g4l1l30", roles: ["dbOwner"] });
+use tw_management;
+db.createUser({ user: "birdy", pwd: "f75e51bdaba3.", roles: ["dbOwner"] });
 
 /**
  *	Starting and accesing
