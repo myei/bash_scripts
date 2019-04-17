@@ -6,5 +6,5 @@ Contiene categorías como:
 
   - Git management
   - Linux security
-  - DDBB backups
   - Linux utilities
+  - Installers
