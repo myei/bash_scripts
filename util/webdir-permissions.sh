@@ -1,4 +1,5 @@
 #!/bin/bash
+# 
 # Script for setting up the right permissions for a web directory (files and dirs)
 #
 #                                                                            @myei

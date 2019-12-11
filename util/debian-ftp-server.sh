@@ -1,4 +1,5 @@
 #!/bin/bash
+# 
 # Basic script for installing and configuring a ftp server in Debian
 # 
 # Includes:

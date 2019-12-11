@@ -1,4 +1,5 @@
 #!/bin/bash
+# 
 # Basic script for installing the basics packages for Arch based distros
 # 
 # usage: overload-checker.sh [PERCENTAGE]
