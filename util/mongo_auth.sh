@@ -1,9 +1,7 @@
-/**
- *	Create root -> Mongo 2
- **/
+# Create root -> Mongo 2
 db.createUser({
-    user: "superman",
-    pwd: "4r1st0t3l3s",
+    user: "ADMIN",
+    pwd: "PSW",
     roles: [
               { role: "userAdminAnyDatabase", db: "admin" },
               { role: "readWriteAnyDatabase", db: "admin" },
@@ -12,20 +10,14 @@ db.createUser({
            ]
 });
 
-/**
- *	Create root -> Mongo 3
- **/
+# Create root -> Mongo 3
 use admin;
-db.createUser({ user: "superman", pwd: "4r1st0t3l3s", roles: ["root"] });
+db.createUser({ user: "ADMIN", pwd: "PSW", roles: ["root"] });
 
-/**
- *	Create owner of database
- **/
+# Create owner of database
 use tw_management;
-db.createUser({ user: "birdy", pwd: "f75e51bdaba3.", roles: ["dbOwner"] });
+db.createUser({ user: "USEROWNER", pwd: "PSW", roles: ["dbOwner"] });
 
-/**
- *	Starting and accesing
- **/
+# Starting and accesing
 sudo mongod --auth --dbpath /var/lib/mongodb
 mongo -u superman -p --authenticationDatabase "admin"
