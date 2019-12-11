@@ -1,4 +1,18 @@
 #!/bin/bash
+# Basic script for installing and configuring a ftp server in Debian
+# 
+# Includes:
+#  - Enabling anonymous access for given path
+#  - Disabling root access
+# 
+# usage: debian-ftp-server.sh [PATH]
+# 
+#                                                                  @myei
+
+
+# validations
+[[ -z $1 ]] && echo "usage: debian-ftp-server.sh [PATH]" && exit 1
+[[ ! -d $1 ]] && echo "error: path doesn't exists" && exit 2
 
 if [[ ! -d /etc/proftpd ]]; then
         printf "[BAD]: Validando paquete proftpd \n"
@@ -21,7 +35,7 @@ echo -e "
 </Global>
 
 # Enabling anonymous access
-<Anonymous /var/www/html/images>
+<Anonymous $1>
         user ftp
         Group nogroup
                 <Limit LOGIN>

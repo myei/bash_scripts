@@ -1,16 +1,20 @@
 #!/bin/bash
+# Basic script for installing the basics packages for Arch based distros
+# 
+# usage: overload-checker.sh [PERCENTAGE]
+#
+#                                                                  @myei
+
 
 SERVER=$(hostname)
-EMAIL='manuelyeixon@gmail.com'
+EMAIL='email@email.com'
 
 log=/var/log/overload.log
 cpu=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}')
 memory=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
 
-if [[ ${#} == 0 ]]; then
-	echo "Debe especificar el porcentaje base a monitorear..."
-	exit 1
-fi
+[[ -z $1 ]] && echo "usage: overload-checker.sh [PATH]" && exit 1
+
 
 if [[ ${cpu%.*} -gt $1 ]]; then
 	echo "`date -u +%Y-%m-%dT%H:%M:%S` cpu usage: $cpu%" >> $log
@@ -25,7 +29,7 @@ if [[ ${memory%.*} -gt $1 ]]; then
 		sleep 5
 		service apache2 start
 
-		echo "`date -u +%Y-%m-%dT%H:%M:%S` memory usage: $memory%... Apache fue reiniciado" | $(mail -s "WARN ${SERVER}" $EMAIL)
+		echo "`date -u +%Y-%m-%dT%H:%M:%S` memory usage: $memory%... apache2 restarted" | $(mail -s "WARN ${SERVER}" $EMAIL)
 
 		exit
 	fi

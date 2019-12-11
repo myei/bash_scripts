@@ -1,3 +1,9 @@
+#!/bin/bash
+# Basic script for installing the basics packages for Arch based distros
+#
+#                                                                  @myei
+
+
 SCRIPT_DIR=`pwd`
 TMP_DIR=/tmp
 ERROR_LOG=$SCRIPT_DIR/errors.log

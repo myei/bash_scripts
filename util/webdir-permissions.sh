@@ -1,6 +1,8 @@
-#!/usr/bin/bash
-
+#!/bin/bash
 # Script for setting up the right permissions for a web directory (files and dirs)
+#
+#                                                                            @myei
+
 
 # validations
 [[ -z $1 ]] && echo "usage: webdir-permissions.sh [PATH]" && exit 1

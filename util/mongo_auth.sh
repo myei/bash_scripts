@@ -1,3 +1,6 @@
+# List of commands examples for using mongo
+
+
 # Create root -> Mongo 2
 db.createUser({
     user: "ADMIN",
