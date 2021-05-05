@@ -72,18 +72,34 @@ for project in $@; do
 	    LOCAL=$(git rev-parse @)
 	    REMOTE=$(git rev-parse $UPSTREAM)
 	    BASE=$(git merge-base @ $UPSTREAM)
+		WD_CHANGES=$(git status --untracked-files=no --porcelain)
 
 		printf "status: "
 		if [[ $LOCAL = $REMOTE ]]; then
 		    printf "${GREEN}${BOLD}up-to-date${NC} \n\n"
 		elif [[ $LOCAL = $BASE ]]; then
-
 		    printf "${YELLOW}${BOLD}pulling...${NC} \n"
+			
+			if [[ ${#WD_CHANGES} = 0 ]]; then
+		    	printf "${GREEN}${BOLD}working directory clean...${NC} \n"
+			else
+		    	printf "${YELLOW}${BOLD}working directory is dirty, stashing...${NC} \n"
+				git stash
+			fi
 
-			git stash
 			git pull
+			PULL_STATUS=$?
 
-			printf "status: ${GREEN}${BOLD}updated${NC} \n\n"
+			if [[ ${#WD_CHANGES} > 0 ]]; then
+		    	printf "${YELLOW}${BOLD}bringing back stashed changes...${NC} \n"
+				git stash pop
+			fi
+
+			if [[ $PULL_STATUS = 0 ]]; then 
+				printf "status: ${GREEN}${BOLD}updated${NC} \n\n"
+			else
+				printf "status: ${RED}${BOLD}not-updated${NC} \n\n"
+			fi
 
 		elif [[ $REMOTE = $BASE ]]; then
 		    printf "${RED}${BOLD}need to push${NC} \n\n"
@@ -93,6 +109,7 @@ for project in $@; do
 
 		cd $src
 	else
-		printf "[${RED}${BOLD}ERROR${NC}] `realpath $project`: no existe o no contiene algún proyecto git\n\n"
+		printf "[${RED}${BOLD}ERROR${NC}] `realpath $project`: doesn't exists or it's not a git project\n\n"
 	fi
 done
+
