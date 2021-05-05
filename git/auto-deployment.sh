@@ -18,6 +18,8 @@
 ##############################################################
 
 SCRIPT_NAME='auto-deployment'
+PROJECT_USER='apache'
+PHP_PATH=php
 
 # C O L O R S
 GREEN='\033[0;32m'
@@ -93,6 +95,19 @@ for project in $@; do
 			if [[ ${#WD_CHANGES} > 0 ]]; then
 		    	printf "${YELLOW}${BOLD}bringing back stashed changes...${NC} \n"
 				git stash pop
+			fi
+
+			if [[ -f bin/console ]]; then
+				if [[ -f .env ]]; then
+		    		printf "${YELLOW}${BOLD}symfony project detected [>= v4], clearing cache...${NC} \n"
+					$PHP_PATH bin/console cache:clear
+				else
+		    		printf "${YELLOW}${BOLD}symfony project detected [<= v3], clearing cache...${NC} \n"
+					rm -rf var/cache/* && $PHP_PATH bin/console cache:clear --env=prod --no-warmup
+					$PHP_PATH bin/console assets:install --symlink --relative web 
+					chown -R $PROJECT_USER:$PROJECT_USER .
+					setfacl -d -m u:$PROJECT_USER:rwx -m u:`whoami`:rwx var/{cache,logs,sessions} web && setfacl -dR -m u:$PROJECT_USER:rwx -m u:`whoami`:rwx var/{cache,logs,sessions} web
+				fi
 			fi
 
 			if [[ $PULL_STATUS = 0 ]]; then 
