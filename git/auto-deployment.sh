@@ -24,6 +24,7 @@ PHP_PATH=php
 COMPOSER_PATH=/usr/local/bin/composer
 COMPOSER_LOCATION='composer.json'
 ENTITY_PREFIX='Entity/'
+LOG_FILE=~/.${SCRIPT_NAME}.log
 
 # C O L O R S
 GREEN='\033[0;32m'
@@ -38,6 +39,8 @@ I='\e[3m'
 
 # F O N T S
 BOLD='\e[1m'
+
+[ ! -f $LOG_FILE ] && touch $LOG_FILE
 
 if [[ $# -eq 0 ]]; then
 	printf "error: Argumentos inválidos \n\n"
@@ -69,7 +72,7 @@ clearCache () {
 	if [[ -f bin/console ]]; then
 		if [[ -f .env ]]; then
 			printf "${YELLOW}${BOLD}\nsymfony project detected [>= v4], clearing cache...${NC} \n"
-			$PHP_PATH bin/console cache:clear
+			$PHP_PATH bin/console cache:clear 2>>$LOG_FILE
 		else
 			printf "${YELLOW}${BOLD}\nsymfony project detected [<= v3], clearing cache...${NC} \n"
 			rm -rf var/cache/* && $PHP_PATH bin/console cache:clear --env=prod --no-warmup
@@ -82,34 +85,41 @@ clearCache () {
 
 composerUpdate () {
 	if echo $NEW_CHANGES | grep -q $COMPOSER_LOCATION; then
-		printf "${YELLOW}${BOLD}\nRunning composer update ${NC} \n"
-		$PHP_PATH $COMPOSER_PATH update
+		printf "${YELLOW}${BOLD}\nrunning composer:update ${NC} \n"
+		$PHP_PATH $COMPOSER_PATH update 2>>$LOG_FILE
 
 		successCU=$?
 		if [ $successCU -eq 0 ]; then
-			printf "${GREEN}${BOLD}Composer update executed successfully ${NC} \n"
+			printf "${GREEN}${BOLD}composer:update executed successfully ${NC} \n"
 		else
-			printf "${RED}${BOLD}Something went wrong! Composer update not executed ${NC} \n"
+			printf "${RED}${BOLD}Something went wrong! composer:update not executed ${NC} \n"
+			logger 'ERROR' 'SomÞenthing wrong trying to run composer:update'
 		fi
 	else
-		printf "${GREEN}${BOLD}Composer update not needed... ${NC} \n"
+		printf "${GREEN}${BOLD}composer:update not needed... ${NC} \n"
 	fi
 }
 
 schemaUpdate () {
 	if echo $NEW_CHANGES | grep -q $ENTITY_PREFIX; then
-		printf "${YELLOW}${BOLD}\nRunning schema update ${NC} \n"
-		$PHP_PATH bin/console doctrine:schema:update --force
+		printf "${YELLOW}${BOLD}\nrunning schema:update ${NC} \n"
+		
+		$PHP_PATH bin/console doctrine:schema:update --force 2>>$LOG_FILE
 
 		successUDB=$?
 		if [ $successUDB -eq 0 ]; then
-			printf "${GREEN}${BOLD}Database schema update executed successfully ${NC} \n"
+			printf "${GREEN}${BOLD}schema:update executed successfully ${NC} \n"
 		else
-			printf "${RED}${BOLD}Something went wrong! Database schema update not executed ${NC} \n"
+			printf "${RED}${BOLD}Something went wrong! schema:update not executed ${NC} \n"
+			logger 'ERROR' 'Somenthing wrong trying to run schema:update'
 		fi
 	else
-		printf "${GREEN}${BOLD}Schema update not needed... ${NC} \n"
+		printf "${GREEN}${BOLD}schema:update not needed... ${NC} \n"
 	fi
+}
+
+logger () {
+	echo $(date +'[%d-%m-%Y %H:%M:%S']) [$1] [$CURRENT_PROJECT] $2 >> $LOG_FILE
 }
 # / F U N C T  I O N S
 
@@ -121,8 +131,9 @@ for project in $@; do
 	if [[ -d `realpath $project`"/.git" ]]; then
 
 		cd $project
+		CURRENT_PROJECT=$(basename $(realpath $project))
 
-		printf "updating -> ${CYAN}${BOLD}$(basename $(realpath $project))${NC} listening on: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
+		printf "updating -> ${CYAN}${BOLD}$CURRENT_PROJECT${NC} listening on: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
 		git remote update
 
 		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
