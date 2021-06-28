@@ -14,7 +14,7 @@
 # - Permite auto instalación (-i --install)
 # 	
 #
-# 														v2.3
+# 														v2.3.1
 ##############################################################
 
 # C O N F I G U R A T I O N
