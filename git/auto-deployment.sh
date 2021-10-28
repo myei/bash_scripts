@@ -93,7 +93,7 @@ composerUpdate () {
 			printf "${GREEN}${BOLD}composer:update executed successfully ${NC} \n"
 		else
 			printf "${RED}${BOLD}Something went wrong! composer:update not executed ${NC} \n"
-			logger 'ERROR' 'SomÞenthing wrong trying to run composer:update'
+			logger 'ERROR' 'Somenthing wrong trying to run composer:update'
 		fi
 	else
 		printf "${GREEN}${BOLD}composer:update not needed... ${NC} \n"
@@ -127,11 +127,11 @@ logger () {
 src=`pwd $(readlink -f "$0")`
 
 for project in $@; do
-
-	if [[ -d `realpath $project`"/.git" ]]; then
+	CURRENT_PROJECT_PATH=`realpath $project`
+	if [[ -d "${CURRENT_PROJECT_PATH}/.git" ]]; then
 
 		cd $project
-		CURRENT_PROJECT=$(basename $(realpath $project))
+		CURRENT_PROJECT=$(basename $CURRENT_PROJECT_PATH)
 
 		printf "updating -> ${CYAN}${BOLD}$CURRENT_PROJECT${NC} listening on: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
 		git remote update
@@ -141,7 +141,9 @@ for project in $@; do
 	    REMOTE=$(git rev-parse $UPSTREAM)
 	    BASE=$(git merge-base @ $UPSTREAM)
 		WD_CHANGES=$(git status --untracked-files=no --porcelain)
-		NEW_CHANGES=$(git diff --name-only --merge-base $LOCAL $REMOTE)
+		# NEW_CHANGES=$(git diff --name-only --merge-base $LOCAL $REMOTE) # Works on git >= 2.33
+		NEW_CHANGES=$(git diff --name-only $LOCAL $REMOTE)
+
 
 		printf "\nstatus: "
 		if [[ $LOCAL = $REMOTE ]]; then
