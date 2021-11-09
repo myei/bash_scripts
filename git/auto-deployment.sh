@@ -1,21 +1,27 @@
 #!/bin/bash
 
-##############################################################
+###############################################################################
 #
-# 										Creado por: Manuel Gil
+# 														Creado por: Manuel Gil
 #
-# Este script permite:
+# 	Este script facilita/automatiza la gestión de despliegues:
 #
-# - Este script permite el autodeploy de múltiples 
-#   aplicaciones manejadas por GIT especificadas como argumentos
-# 
-# - Se permiten rutas relativas o absolutas
-# 
-# - Permite auto instalación (-i --install)
+# 		- Permite la actualización de múltiples aplicaciones manejadas por Git
+# 			- Se permiten rutas relativas o absolutas
+#		- Manejo de errores
+#		- Implementa archivos de Logs diarios para revisión post-ejecución
+#		- Auto limpieza de logs, parametrizable por días
+#		- Comunicación vía email de errores y despliegues exitosos
+#		- Automatizaciones inteligentes de symfony y git
+#			- Limpieza de cache
+#			- Actualiación de dependencias
+#			- Actualizacion de Base de Datos
+#			- Previene conflictos con cambios locales
+# 		- Permite auto instalación (-i --install)
 # 	
 #
-# 														v2.3.1
-##############################################################
+# 																		v2.4
+##############################################################################
 
 # C O N F I G U R A T I O N
 SCRIPT_NAME='auto-deployment'
@@ -105,22 +111,22 @@ clearCache () {
 
 composerUpdate () {
 	if echo $NEW_CHANGES | grep -q $COMPOSER_LOCATION; then
-		printf "${YELLOW}${BOLD}\nrunning composer:update ${NC} \n"
-		logger 'INFO' 'running composer:update'
+		printf "${YELLOW}${BOLD}\nrunning composer:install ${NC} \n"
+		logger 'INFO' 'running composer:install'
 
-		cmd_result=`$PHP_PATH $COMPOSER_PATH update 2>&1 > /dev/null`
+		cmd_result=`$PHP_PATH $COMPOSER_PATH install 2>&1 > /dev/null`
 		wasSuccessful=$?
 
 		if [ $wasSuccessful -eq 0 ]; then
-			printf "${GREEN}${BOLD}composer:update executed successfully ${NC} \n"
-			logger 'INFO' 'composer:update executed successfully'
+			printf "${GREEN}${BOLD}composer:install executed successfully ${NC} \n"
+			logger 'INFO' 'composer:install executed successfully'
 		else
-			printf "${RED}${BOLD}Something went wrong! composer:update not executed ${NC} \n"
-			logger 'ERROR' 'Something went wrong! composer:update not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD}Something went wrong! composer:install not executed ${NC} \n"
+			logger 'ERROR' 'Something went wrong! composer:install not executed' ${cmd_result// /_}
 		fi
 	else
-		printf "${GREEN}${BOLD}composer:update not needed... ${NC} \n"
-		logger 'INFO' 'composer:update not needed...'
+		printf "${GREEN}${BOLD}composer:install not needed... ${NC} \n"
+		logger 'INFO' 'composer:install not needed...'
 	fi
 }
 
@@ -169,6 +175,7 @@ clearLogFiles () {
 # / F U N C T  I O N S
 
 # M A I N
+clearLogFiles
 src=`pwd $(readlink -f "$0")`
 
 for project in $@; do
