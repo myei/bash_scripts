@@ -151,6 +151,30 @@ schemaUpdate () {
 	fi
 }
 
+npmUpdate () {
+	if echo $NEW_CHANGES | grep -q 'package.json' || echo $NEW_CHANGES | grep -q 'package-lock.json'; then
+
+		printf "${YELLOW}${BOLD}\nrunning npm:install ${NC} \n"
+		logger 'INFO' 'running npm:install'
+		
+		cd public
+		cmd_result=`npm i 2>&1 > /dev/null`
+		wasSuccessful=$?
+		cd ..
+
+		if [ $wasSuccessful -eq 0 ]; then
+			printf "${GREEN}${BOLD}npm:install executed successfully ${NC} \n"
+			logger 'INFO' 'npm:install executed successfully'
+		else
+			printf "${RED}${BOLD}Something went wrong! npm:install not executed ${NC} \n"
+			logger 'ERROR' 'Something went wrong! npm:install not executed' ${cmd_result// /_}
+		fi
+	else
+		printf "${GREEN}${BOLD}npm:install not needed... ${NC} \n"
+		logger 'INFO' 'npm:install not needed...'
+	fi
+}
+
 communicate () {
 	echo 'implement your own mailsender...'
 }
@@ -222,6 +246,8 @@ for project in $@; do
 			composerUpdate
 
 			schemaUpdate
+
+			npmUpdate
 
 			if [[ ${#WD_CHANGES} > 0 ]]; then
 		    	printf "${YELLOW}${BOLD}\nbringing back stashed changes...${NC} \n"
