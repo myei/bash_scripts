@@ -114,7 +114,7 @@ composerUpdate () {
 		printf "${YELLOW}${BOLD}\nrunning composer:install ${NC} \n"
 		logger 'INFO' 'running composer:install'
 
-		cmd_result=`$PHP_PATH $COMPOSER_PATH install 2>&1 > /dev/null`
+		cmd_result=`$PHP_PATH $COMPOSER_PATH install -n 2>&1 > /dev/null`
 		wasSuccessful=$?
 
 		if [ $wasSuccessful -eq 0 ]; then
