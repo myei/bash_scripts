@@ -33,7 +33,7 @@ COMPOSER_LOCATION='composer.json'
 ENTITY_PREFIX='Entity/'
 LOG_FILE=~/.${SCRIPT_NAME}-$(date +'%d-%m-%Y').log
 MAX_LOG_FILES=5
-MAIL_DEST=
+MAIL_DEST=()
 SERVER_NAME=`hostname`
 
 # C O L O R S
@@ -135,6 +135,7 @@ schemaUpdate () {
 		printf "${YELLOW}${BOLD}\nrunning schema:update ${NC} \n"
 		logger 'INFO' 'running schema:update'
 		
+		clearCache
 		cmd_result=`$PHP_PATH bin/console doctrine:schema:update --force 2>&1 > /dev/null`
 		wasSuccessful=$?
 
@@ -208,6 +209,7 @@ for project in $@; do
 
 		cd $project
 		CURRENT_PROJECT=$(basename $CURRENT_PROJECT_PATH)
+		CURRENT_PROJECT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 
 		printf "updating -> ${CYAN}${BOLD}$CURRENT_PROJECT${NC} listening on: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
 		
