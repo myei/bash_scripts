@@ -80,17 +80,20 @@ fi
 # F U N C T I O N S 
 clearCache () {
 	if [[ -f bin/console ]]; then
+		printf "${YELLOW}${BOLD}running cache:clear ${NC} \n"
+		logger 'INFO' 'running cache:clear'
+
 		if [[ -f .env ]]; then
-			printf "${YELLOW}${BOLD}\nsymfony project detected [>= v4], running cache:clear...${NC} \n"
-			logger 'INFO' 'symfony project detected [>= v4], running cache:clear...'
+			printf "${YELLOW}${BOLD}-> symfony project detected [>= v4]${NC} \n"
+			logger 'INFO' 'symfony project detected [>= v4]'
 
 			cmd_result=`$PHP_PATH bin/console cache:clear 2>&1 > /dev/null`
 			wasSuccessful=$?
 			chown -R $PROJECT_USER:$PROJECT_GROUP .
 			setfacl -d -m u:$PROJECT_USER:rwx -m u:`whoami`:rwx var/{cache,log} public && setfacl -dR -m u:$PROJECT_USER:rwx -m u:`whoami`:rwx var/{cache,log} public
 		else
-			printf "${YELLOW}${BOLD}\nsymfony project detected [<= v3], running cache:clear...${NC} \n"
-			logger 'INFO' 'symfony project detected [<= v3], running cache:clear...'
+			printf "${YELLOW}${BOLD}-> symfony project detected [<= v3]${NC} \n"
+			logger 'INFO' 'symfony project detected [<= v3]'
 
 			cmd_result=`rm -rf var/cache/* && $PHP_PATH bin/console cache:clear --env=prod --no-warmup 2>&1 > /dev/null`
 			wasSuccessful=$?
@@ -100,10 +103,10 @@ clearCache () {
 		fi
 
 		if [ $wasSuccessful -eq 0 ];then
-			printf "${GREEN}${BOLD}\ncache:clear executed successfully${NC} \n"
+			printf "${GREEN}${BOLD}cache:clear executed successfully${NC} \n"
 			logger 'INFO' 'cache:clear executed successfully'
 		else
-			printf "${RED}${BOLD}\nSomething went wrong! cache:clear not executed${NC} \n" 
+			printf "${RED}${BOLD}Something went wrong! cache:clear not executed${NC} \n" 
 			logger 'ERROR' 'Something went wrong! cache:clear not executed' ${cmd_result// /_}
 		fi
 	fi
@@ -111,7 +114,7 @@ clearCache () {
 
 composerUpdate () {
 	if echo $NEW_CHANGES | grep -q $COMPOSER_LOCATION; then
-		printf "${YELLOW}${BOLD}\nrunning composer:install ${NC} \n"
+		printf "${YELLOW}${BOLD}running composer:install ${NC} \n"
 		logger 'INFO' 'running composer:install'
 
 		cmd_result=`$PHP_PATH $COMPOSER_PATH install -n 2>&1 > /dev/null`
@@ -132,7 +135,7 @@ composerUpdate () {
 
 schemaUpdate () {
 	if echo $NEW_CHANGES | grep -q $ENTITY_PREFIX; then
-		printf "${YELLOW}${BOLD}\nrunning schema:update ${NC} \n"
+		printf "${YELLOW}${BOLD}running schema:update ${NC} \n"
 		logger 'INFO' 'running schema:update'
 		
 		clearCache
@@ -155,7 +158,7 @@ schemaUpdate () {
 npmUpdate () {
 	if echo $NEW_CHANGES | grep -q 'package.json' || echo $NEW_CHANGES | grep -q 'package-lock.json'; then
 
-		printf "${YELLOW}${BOLD}\nrunning npm:install ${NC} \n"
+		printf "${YELLOW}${BOLD}running npm:install ${NC} \n"
 		logger 'INFO' 'running npm:install'
 		
 		cd public
@@ -237,7 +240,7 @@ for project in $@; do
 		    	printf "${GREEN}${BOLD}working directory clean...${NC} \n"
 				logger 'INFO' 'working directory clean...'
 			else
-		    	printf "${YELLOW}${BOLD}\nworking directory is dirty, stashing...${NC} \n"
+		    	printf "${YELLOW}${BOLD}working directory is dirty, stashing...${NC} \n"
 				logger 'INFO' 'working directory is dirty, stashing...'
 				git stash
 			fi
@@ -252,7 +255,7 @@ for project in $@; do
 			npmUpdate
 
 			if [[ ${#WD_CHANGES} > 0 ]]; then
-		    	printf "${YELLOW}${BOLD}\nbringing back stashed changes...${NC} \n"
+		    	printf "${YELLOW}${BOLD}bringing back stashed changes...${NC} \n"
 				logger 'INFO' 'bringing back stashed changes...'
 				git stash pop
 			fi
@@ -271,9 +274,11 @@ for project in $@; do
 		elif [[ $REMOTE = $BASE ]]; then
 		    printf "${RED}${BOLD}need to push${NC} \n\n"
 			logger 'INFO' 'need to push...'
+			communicate 'Error: The project is ahead from repository, requires attention!!'
 		else
 		    printf "${REED}${BOLD}diverged${NC} \n\n"
 			logger 'INFO' 'diverged...'
+			communicate 'Error: diverged, requires attention!!'
 		fi
 
 		cd $src
