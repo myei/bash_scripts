@@ -180,7 +180,7 @@ npmUpdate () {
 }
 
 runGulp () {
-	if echo `ls` | grep -q 'gulpfile-prod.js' || echo $NEW_CHANGES | grep -q 'gulpfile-prod.js'; then
+	if echo `ls public/` | grep -q 'gulpfile-prod.js' || echo $NEW_CHANGES | grep -q 'gulpfile-prod.js'; then
 
 		printf "${YELLOW}${BOLD}running gulp ${NC} \n"
 		logger 'INFO' 'running gulp'
