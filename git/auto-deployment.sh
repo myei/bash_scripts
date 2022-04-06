@@ -162,7 +162,7 @@ npmUpdate () {
 		logger 'INFO' 'running npm:install'
 		
 		cd public
-		cmd_result=`npm i 2>&1 > /dev/null`
+		cmd_result=`npm i --include=dev 2>&1 > /dev/null`
 		wasSuccessful=$?
 		cd ..
 
@@ -176,6 +176,30 @@ npmUpdate () {
 	else
 		printf "${GREEN}${BOLD}npm:install not needed... ${NC} \n"
 		logger 'INFO' 'npm:install not needed...'
+	fi
+}
+
+runGulp () {
+	if echo `ls` | grep -q 'gulpfile-prod.js' || echo $NEW_CHANGES | grep -q 'gulpfile-prod.js'; then
+
+		printf "${YELLOW}${BOLD}running gulp ${NC} \n"
+		logger 'INFO' 'running gulp'
+		
+		cd public
+		cmd_result=`gulp -f gulpfile-prod.js 2>&1 > /dev/null`
+		wasSuccessful=$?
+		cd ..
+
+		if [ $wasSuccessful -eq 0 ]; then
+			printf "${GREEN}${BOLD}gulp executed successfully ${NC} \n"
+			logger 'INFO' 'gulp executed successfully'
+		else
+			printf "${RED}${BOLD}Something went wrong! gulp not executed ${NC} \n"
+			logger 'ERROR' 'Something went wrong! gulp not executed' ${cmd_result// /_}
+		fi
+	else
+		printf "${GREEN}${BOLD}gulp not needed... ${NC} \n"
+		logger 'INFO' 'gulp not needed...'
 	fi
 }
 
@@ -261,6 +285,8 @@ for project in $@; do
 			fi
 
 			clearCache
+
+			runGulp
 
 			if [[ $PULL_STATUS = 0 ]]; then 
 				printf "status: ${GREEN}${BOLD}updated${NC} \n\n"
