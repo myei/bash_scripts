@@ -35,6 +35,7 @@ LOG_FILE=~/.${SCRIPT_NAME}-$(date +'%d-%m-%Y').log
 MAX_LOG_FILES=5
 MAIL_DEST=()
 SERVER_NAME=`hostname`
+INSTALLATION_PATH=/bin/
 
 # C O L O R S
 GREEN='\033[0;32m'
@@ -53,22 +54,22 @@ BOLD='\e[1m'
 [ ! -f $LOG_FILE ] && touch $LOG_FILE
 
 if [[ $# -eq 0 ]]; then
-	printf "error: Argumentos inválidos \n\n"
+	printf "error: Invalid arguments \n\n"
 
 	printf "auto-deployment usage: auto-deployment [ dir1 dir2 ... dirN ] \n\n"
 
-	printf "	dirX: Ruta de los directorios a actualizar, pueden ser relativas o absolutas \n\n"
+	printf "	dirX: directories to watch, it could be full or relatives paths \n\n"
 
 	exit
 elif [[ $1 = "-i" || $1 = "--install" ]]; then
-	if [[ $(echo $(readlink -f $0) | grep '/usr/bin/') = '' ]]; then
-		if [[ -f /usr/bin/$SCRIPT_NAME || -L /usr/bin/$SCRIPT_NAME ]]; then
-			sudo rm /usr/bin/$SCRIPT_NAME
+	if [[ $(echo $(readlink -f $0) | grep '${INSTALLATION_PATH}') = '' ]]; then
+		if [[ -f $INSTALLATION_PATH$SCRIPT_NAME || -L $INSTALLATION_PATH$SCRIPT_NAME ]]; then
+			sudo rm $INSTALLATION_PATH$SCRIPT_NAME
 		fi
 		
-		sudo cp $(readlink -f $0) /usr/bin/$SCRIPT_NAME
+		sudo cp $(readlink -f $0) $INSTALLATION_PATH$SCRIPT_NAME && chmod +x $INSTALLATION_PATH$SCRIPT_NAME
 
-		echo -e "[${GREEN}${BOLD}OK${NC}] instalar script"
+		echo -e "[${GREEN}${BOLD}SUCCESS${NC}] instalar script"
 	else
 		echo -e "[${RED}${BOLD}ERROR${NC}] instalar script: ya esta instalado"
 	fi
@@ -84,7 +85,7 @@ clearCache () {
 		logger 'INFO' 'running cache:clear'
 
 		if [[ -f .env ]]; then
-			printf "${YELLOW}${BOLD}-> symfony project detected [>= v4]${NC} \n"
+			printf "${YELLOW}${BOLD} > symfony project detected [>= v4]${NC} \n"
 			logger 'INFO' 'symfony project detected [>= v4]'
 
 			cmd_result=`$PHP_PATH bin/console cache:clear 2>&1 > /dev/null`
@@ -92,7 +93,7 @@ clearCache () {
 			chown -R $PROJECT_USER:$PROJECT_GROUP .
 			setfacl -d -m u:$PROJECT_USER:rwx -m u:`whoami`:rwx var/{cache,log} public && setfacl -dR -m u:$PROJECT_USER:rwx -m u:`whoami`:rwx var/{cache,log} public
 		else
-			printf "${YELLOW}${BOLD}-> symfony project detected [<= v3]${NC} \n"
+			printf "${YELLOW}${BOLD} > symfony project detected [<= v3]${NC} \n"
 			logger 'INFO' 'symfony project detected [<= v3]'
 
 			cmd_result=`rm -rf var/cache/* && $PHP_PATH bin/console cache:clear --env=prod --no-warmup 2>&1 > /dev/null`
@@ -103,11 +104,11 @@ clearCache () {
 		fi
 
 		if [ $wasSuccessful -eq 0 ];then
-			printf "${GREEN}${BOLD}cache:clear executed successfully${NC} \n"
-			logger 'INFO' 'cache:clear executed successfully'
+			printf "${GREEN}${BOLD} > cache:clear executed successfully${NC} \n"
+			logger 'INFO' ' > cache:clear executed successfully'
 		else
-			printf "${RED}${BOLD}Something went wrong! cache:clear not executed${NC} \n" 
-			logger 'ERROR' 'Something went wrong! cache:clear not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > Something went wrong! cache:clear not executed${NC} \n" 
+			logger 'ERROR' ' > Something went wrong! cache:clear not executed' ${cmd_result// /_}
 		fi
 	fi
 }
@@ -121,15 +122,15 @@ composerUpdate () {
 		wasSuccessful=$?
 
 		if [ $wasSuccessful -eq 0 ]; then
-			printf "${GREEN}${BOLD}composer:install executed successfully ${NC} \n"
-			logger 'INFO' 'composer:install executed successfully'
+			printf "${GREEN}${BOLD} > composer:install executed successfully ${NC} \n"
+			logger 'INFO' ' > composer:install executed successfully'
 		else
-			printf "${RED}${BOLD}Something went wrong! composer:install not executed ${NC} \n"
-			logger 'ERROR' 'Something went wrong! composer:install not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > Something went wrong! composer:install not executed ${NC} \n"
+			logger 'ERROR' ' > Something went wrong! composer:install not executed' ${cmd_result// /_}
 		fi
 	else
-		printf "${GREEN}${BOLD}composer:install not needed... ${NC} \n"
-		logger 'INFO' 'composer:install not needed...'
+		printf "${BLUE}${BOLD}[skipped] composer:install not needed... ${NC} \n"
+		logger 'INFO' '[skipped] composer:install not needed...'
 	fi
 }
 
@@ -138,20 +139,19 @@ schemaUpdate () {
 		printf "${YELLOW}${BOLD}running schema:update ${NC} \n"
 		logger 'INFO' 'running schema:update'
 		
-		clearCache
 		cmd_result=`$PHP_PATH bin/console doctrine:schema:update --force 2>&1 > /dev/null`
 		wasSuccessful=$?
 
 		if [ $wasSuccessful -eq 0 ]; then
-			printf "${GREEN}${BOLD}schema:update executed successfully ${NC} \n"
-			logger 'INFO' 'schema:update executed successfully'
+			printf "${GREEN}${BOLD} > schema:update executed successfully ${NC} \n"
+			logger 'INFO' ' > schema:update executed successfully'
 		else
-			printf "${RED}${BOLD}Something went wrong! schema:update not executed ${NC} \n"
-			logger 'ERROR' 'Something went wrong! schema:update not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > Something went wrong! schema:update not executed ${NC} \n"
+			logger 'ERROR' ' > Something went wrong! schema:update not executed' ${cmd_result// /_}
 		fi
 	else
-		printf "${GREEN}${BOLD}schema:update not needed... ${NC} \n"
-		logger 'INFO' 'schema:update not needed...'
+		printf "${BLUE}${BOLD}[skipped] schema:update not needed... ${NC} \n"
+		logger 'INFO' '[skipped] schema:update not needed...'
 	fi
 }
 
@@ -167,39 +167,40 @@ npmUpdate () {
 		cd ..
 
 		if [ $wasSuccessful -eq 0 ]; then
-			printf "${GREEN}${BOLD}npm:install executed successfully ${NC} \n"
-			logger 'INFO' 'npm:install executed successfully'
+			printf "${GREEN}${BOLD} > npm:install executed successfully ${NC} \n"
+			logger 'INFO' ' > npm:install executed successfully'
 		else
-			printf "${RED}${BOLD}Something went wrong! npm:install not executed ${NC} \n"
-			logger 'ERROR' 'Something went wrong! npm:install not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > Something went wrong! npm:install not executed ${NC} \n"
+			logger 'ERROR' ' > Something went wrong! npm:install not executed' ${cmd_result// /_}
 		fi
 	else
-		printf "${GREEN}${BOLD}npm:install not needed... ${NC} \n"
-		logger 'INFO' 'npm:install not needed...'
+		printf "${BLUE}${BOLD}[skipped] npm:install not needed... ${NC} \n"
+		logger 'INFO' '[skipped] npm:install not needed...'
 	fi
 }
 
 runGulp () {
-	if echo `ls public/` | grep -q 'gulpfile-prod.js' || echo $NEW_CHANGES | grep -q 'gulpfile-prod.js'; then
+	GULP_FILE='gulpfile-prod.js'
+	if echo `ls ${PUBLIC_DIR}` | grep -q $GULP_FILE || echo $NEW_CHANGES | grep -q $GULP_FILE; then
 
 		printf "${YELLOW}${BOLD}running gulp ${NC} \n"
 		logger 'INFO' 'running gulp'
 		
 		cd public
-		cmd_result=`gulp -f gulpfile-prod.js 2>&1 > /dev/null`
+		cmd_result=`gulp -f ${GULP_FILE} 2>&1 > /dev/null`
 		wasSuccessful=$?
 		cd ..
 
 		if [ $wasSuccessful -eq 0 ]; then
-			printf "${GREEN}${BOLD}gulp executed successfully ${NC} \n"
-			logger 'INFO' 'gulp executed successfully'
+			printf "${GREEN}${BOLD} > gulp executed successfully ${NC} \n"
+			logger 'INFO' ' > gulp executed successfully'
 		else
-			printf "${RED}${BOLD}Something went wrong! gulp not executed ${NC} \n"
-			logger 'ERROR' 'Something went wrong! gulp not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > Something went wrong! gulp not executed ${NC} \n"
+			logger 'ERROR' ' > Something went wrong! gulp not executed' ${cmd_result// /_}
 		fi
 	else
-		printf "${GREEN}${BOLD}gulp not needed... ${NC} \n"
-		logger 'INFO' 'gulp not needed...'
+		printf "${BLUE}${BOLD}[skipped] gulp not needed... ${NC} \n"
+		logger 'INFO' '[skipped] gulp not needed...'
 	fi
 }
 
@@ -224,6 +225,25 @@ clearLogFiles () {
 	fi
 }
 
+exitOnError () {
+	statusCode=$?
+	if [ $statusCode -gt 0 ]; then
+		printf "${RED}${BOLD} > error code: $statusCode, aborting... ${NC} \n"
+		logger 'ERROR' ' > error code: $statusCode, aborting...' $1
+
+		exit 1
+	fi
+}
+
+setPublicDir () {
+	if [ -f $1'/.env' ]; then
+		PUBLIC_DIR='public'
+	else
+		PUBLIC_DIR='web'
+	fi
+}
+
+
 # / F U N C T  I O N S
 
 # M A I N
@@ -237,11 +257,16 @@ for project in $@; do
 		cd $project
 		CURRENT_PROJECT=$(basename $CURRENT_PROJECT_PATH)
 		CURRENT_PROJECT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+		setPublicDir $CURRENT_PROJECT_PATH
 
-		printf "updating -> ${CYAN}${BOLD}$CURRENT_PROJECT${NC} listening on: ${YELLOW}${BOLD}${I}`git rev-parse --abbrev-ref HEAD`${NC}... \n"
+		printf "updating -> ${CYAN}${BOLD}$CURRENT_PROJECT${NC} listening on: ${YELLOW}${BOLD}${I}${CURRENT_PROJECT_BRANCH}${NC}... \n"
+		logger 'INFO' "updating -> $CURRENT_PROJECT listening on: ${CURRENT_PROJECT_BRANCH}..."
 		
-		logger 'INFO' "updating -> $CURRENT_PROJECT listening on: `git rev-parse --abbrev-ref HEAD`..."
-		git remote update
+		printf "${YELLOW}${BOLD}fetching remotes...  \n"
+		logger 'INFO' 'fetching remotes...' 
+		result=`git remote update 2>&1 > /dev/null`
+		exitOnError
+		
 
 		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
 	    LOCAL=$(git rev-parse @)
@@ -261,19 +286,22 @@ for project in $@; do
 			logger 'INFO' 'pulling...'
 			
 			if [[ ${#WD_CHANGES} = 0 ]]; then
-		    	printf "${GREEN}${BOLD}working directory clean...${NC} \n"
+		    	printf "${BLUE}${BOLD}working directory clean...${NC} \n"
 				logger 'INFO' 'working directory clean...'
 			else
 		    	printf "${YELLOW}${BOLD}working directory is dirty, stashing...${NC} \n"
 				logger 'INFO' 'working directory is dirty, stashing...'
-				git stash
+				result=`git stash 2>&1 > /dev/null`
 			fi
 
-			git pull
+			result=`git pull 2>&1 > /dev/null`
 			PULL_STATUS=$?
 
 			composerUpdate
 
+			if echo $NEW_CHANGES | grep -q $ENTITY_PREFIX; then
+				clearCache
+			fi
 			schemaUpdate
 
 			npmUpdate
@@ -281,7 +309,7 @@ for project in $@; do
 			if [[ ${#WD_CHANGES} > 0 ]]; then
 		    	printf "${YELLOW}${BOLD}bringing back stashed changes...${NC} \n"
 				logger 'INFO' 'bringing back stashed changes...'
-				git stash pop
+				result=`git stash pop 2>&1 > /dev/null`
 			fi
 
 			clearCache
@@ -310,7 +338,7 @@ for project in $@; do
 		cd $src
 		logger 'INFO' '_________________________________________________________________'
 	else
-		printf "[${RED}${BOLD}ERROR${NC}] `realpath $project`: doesn't exists or it's not a git project\n\n"
+		printf "[${RED}${BOLD}ERROR${NC}] ${CURRENT_PROJECT_PATH}: doesn't exists or it's not a git project\n\n"
 	fi
 done
 
