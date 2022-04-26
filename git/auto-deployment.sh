@@ -186,7 +186,7 @@ runGulp () {
 		printf "${YELLOW}${BOLD}running gulp ${NC} \n"
 		logger 'INFO' 'running gulp'
 		
-		cd public
+		cd $PUBLIC_DIR
 		cmd_result=`gulp -f ${GULP_FILE} 2>&1 > /dev/null`
 		wasSuccessful=$?
 		cd ..
@@ -225,16 +225,6 @@ clearLogFiles () {
 	fi
 }
 
-exitOnError () {
-	statusCode=$?
-	if [ $statusCode -gt 0 ]; then
-		printf "${RED}${BOLD} > error code: $statusCode, aborting... ${NC} \n"
-		logger 'ERROR' ' > error code: $statusCode, aborting...' $1
-
-		exit 1
-	fi
-}
-
 setPublicDir () {
 	if [ -f $1'/.env' ]; then
 		PUBLIC_DIR='public'
@@ -264,9 +254,13 @@ for project in $@; do
 		
 		printf "${YELLOW}${BOLD}fetching remotes...  \n"
 		logger 'INFO' 'fetching remotes...' 
-		result=`git remote update 2>&1 > /dev/null`
-		exitOnError
-		
+		cmd_result=`git remote update 2>&1 > /dev/null`
+
+		if [ $? -gt 0 ]; then
+			printf "${RED}${BOLD} > error, aborting... ${NC} \n"
+			logger 'ERROR' ' > error fetching remotes, aborting...' ${cmd_result// /_}
+			exit 1
+		fi
 
 		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
 	    LOCAL=$(git rev-parse @)
