@@ -14,13 +14,14 @@
 #		- Comunicación vía email de errores y despliegues exitosos
 #		- Automatizaciones inteligentes de symfony y git
 #			- Limpieza de cache
-#			- Actualiación de dependencias
+#			- Actualiación de dependencias (composer y npm)
 #			- Actualizacion de Base de Datos
 #			- Previene conflictos con cambios locales
+#			- Gulp implementado
 # 		- Permite auto instalación (-i --install)
 # 	
 #
-# 																		v2.4
+# 																		v2.5
 ##############################################################################
 
 # C O N F I G U R A T I O N
@@ -29,7 +30,7 @@ PROJECT_USER='apache'
 PROJECT_GROUP='apache'
 PHP_PATH=php
 COMPOSER_PATH=/usr/local/bin/composer
-COMPOSER_LOCATION='composer.json'
+COMPOSER_LOCATION='composer.lock'
 ENTITY_PREFIX='Entity/'
 LOG_FILE=~/.${SCRIPT_NAME}-$(date +'%d-%m-%Y').log
 MAX_LOG_FILES=5
@@ -187,7 +188,7 @@ runGulp () {
 		logger 'INFO' 'running gulp'
 		
 		cd $PUBLIC_DIR
-		cmd_result=`gulp -f ${GULP_FILE} 2>&1 > /dev/null`
+		cmd_result=`/usr/local/bin/gulp -f ${GULP_FILE} 2>&1 > /dev/null`
 		wasSuccessful=$?
 		cd ..
 
@@ -258,7 +259,7 @@ for project in $@; do
 
 		if [ $? -gt 0 ]; then
 			printf "${RED}${BOLD} > error, aborting... ${NC} \n"
-			logger 'ERROR' ' > error fetching remotes, aborting...' ${cmd_result// /_}
+			#logger 'ERROR' ' > error fetching remotes, aborting...' ${cmd_result// /_}
 			exit 1
 		fi
 
@@ -271,20 +272,19 @@ for project in $@; do
 		NEW_CHANGES=$(git diff --name-only $LOCAL $REMOTE)
 
 
-		printf "\nstatus: "
 		if [[ $LOCAL = $REMOTE ]]; then
-		    printf "${GREEN}${BOLD}up-to-date${NC} \n\n"
+		    printf "${GREEN}${BOLD} > up-to-date${NC} \n\n"
 			logger 'INFO' 'up-to-date...'
 		elif [[ $LOCAL = $BASE ]]; then
-		    printf "${YELLOW}${BOLD}pulling...${NC} \n"
+		    printf "${YELLOW}${BOLD} > pulling...${NC} \n"
 			logger 'INFO' 'pulling...'
 			
 			if [[ ${#WD_CHANGES} = 0 ]]; then
-		    	printf "${BLUE}${BOLD}working directory clean...${NC} \n"
-				logger 'INFO' 'working directory clean...'
+		    	printf "${BLUE}${BOLD}[wd] working directory clean...${NC} \n"
+				logger 'INFO' '[wd] working directory clean...'
 			else
-		    	printf "${YELLOW}${BOLD}working directory is dirty, stashing...${NC} \n"
-				logger 'INFO' 'working directory is dirty, stashing...'
+		    	printf "${YELLOW}${BOLD}[wd] working directory is dirty, stashing...${NC} \n"
+				logger 'INFO' '[wd] working directory is dirty, stashing...'
 				result=`git stash 2>&1 > /dev/null`
 			fi
 
@@ -301,8 +301,8 @@ for project in $@; do
 			npmUpdate
 
 			if [[ ${#WD_CHANGES} > 0 ]]; then
-		    	printf "${YELLOW}${BOLD}bringing back stashed changes...${NC} \n"
-				logger 'INFO' 'bringing back stashed changes...'
+		    	printf "${YELLOW}${BOLD}[wd] bringing back stashed changes...${NC} \n"
+				logger 'INFO' '[wd] bringing back stashed changes...'
 				result=`git stash pop 2>&1 > /dev/null`
 			fi
 
@@ -311,20 +311,20 @@ for project in $@; do
 			runGulp
 
 			if [[ $PULL_STATUS = 0 ]]; then 
-				printf "status: ${GREEN}${BOLD}updated${NC} \n\n"
+				printf "${CYAN}${BOLD}$CURRENT_PROJECT${NC}: ${GREEN}${BOLD}successfully updated${NC} \n\n"
 				logger 'INFO' 'updated...'
 				communicate 'Successfully updated'
 			else
-				printf "status: ${RED}${BOLD}not-updated${NC} \n\n"
+				printf "${RED}${BOLD} > not-updated${NC} \n\n"
 				logger 'INFO' 'not-updated...'
 			fi
 
 		elif [[ $REMOTE = $BASE ]]; then
-		    printf "${RED}${BOLD}need to push${NC} \n\n"
+		    printf "${RED}${BOLD} > need to push${NC} \n\n"
 			logger 'INFO' 'need to push...'
 			communicate 'Error: The project is ahead from repository, requires attention!!'
 		else
-		    printf "${REED}${BOLD}diverged${NC} \n\n"
+		    printf "${REED}${BOLD} > diverged${NC} \n\n"
 			logger 'INFO' 'diverged...'
 			communicate 'Error: diverged, requires attention!!'
 		fi
