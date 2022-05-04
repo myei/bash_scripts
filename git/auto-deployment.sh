@@ -280,11 +280,11 @@ for project in $@; do
 			logger 'INFO' 'pulling...'
 			
 			if [[ ${#WD_CHANGES} = 0 ]]; then
-		    	printf "${BLUE}${BOLD}[wd] working directory clean...${NC} \n"
-				logger 'INFO' '[wd] working directory clean...'
+		    	printf "${BLUE}${BOLD}working directory clean...${NC} \n"
+				logger 'INFO' 'working directory clean...'
 			else
-		    	printf "${YELLOW}${BOLD}[wd] working directory is dirty, stashing...${NC} \n"
-				logger 'INFO' '[wd] working directory is dirty, stashing...'
+		    	printf "${YELLOW}${BOLD}working directory is dirty, stashing...${NC} \n"
+				logger 'INFO' 'working directory is dirty, stashing...'
 				result=`git stash 2>&1 > /dev/null`
 			fi
 
@@ -301,8 +301,8 @@ for project in $@; do
 			npmUpdate
 
 			if [[ ${#WD_CHANGES} > 0 ]]; then
-		    	printf "${YELLOW}${BOLD}[wd] bringing back stashed changes...${NC} \n"
-				logger 'INFO' '[wd] bringing back stashed changes...'
+		    	printf "${YELLOW}${BOLD}bringing back stashed changes...${NC} \n"
+				logger 'INFO' 'bringing back stashed changes...'
 				result=`git stash pop 2>&1 > /dev/null`
 			fi
 
