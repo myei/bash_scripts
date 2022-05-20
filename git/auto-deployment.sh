@@ -34,7 +34,7 @@ COMPOSER_LOCATION='composer.lock'
 ENTITY_PREFIX='Entity/'
 LOG_FILE=~/.${SCRIPT_NAME}-$(date +'%d-%m-%Y').log
 MAX_LOG_FILES=5
-MAIL_DEST=()
+MAIL_DEST=(mgil@initiumsoft.com vpoeta@initiumsoft.com eacevedo@initiumsoft.com)
 SERVER_NAME=`hostname`
 INSTALLATION_PATH=/bin/
 
@@ -108,8 +108,8 @@ clearCache () {
 			printf "${GREEN}${BOLD} > cache:clear executed successfully${NC} \n"
 			logger 'INFO' ' > cache:clear executed successfully'
 		else
-			printf "${RED}${BOLD} > Something went wrong! cache:clear not executed${NC} \n" 
-			logger 'ERROR' ' > Something went wrong! cache:clear not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > something went wrong! cache:clear not executed${NC} \n" 
+			logger 'ERROR' ' > something went wrong! cache:clear not executed' ${cmd_result// /_}
 		fi
 	fi
 }
@@ -126,8 +126,8 @@ composerUpdate () {
 			printf "${GREEN}${BOLD} > composer:install executed successfully ${NC} \n"
 			logger 'INFO' ' > composer:install executed successfully'
 		else
-			printf "${RED}${BOLD} > Something went wrong! composer:install not executed ${NC} \n"
-			logger 'ERROR' ' > Something went wrong! composer:install not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > something went wrong! composer:install not executed ${NC} \n"
+			logger 'ERROR' ' > something went wrong! composer:install not executed' ${cmd_result// /_}
 		fi
 	else
 		printf "${BLUE}${BOLD}[skipped] composer:install not needed... ${NC} \n"
@@ -147,8 +147,8 @@ schemaUpdate () {
 			printf "${GREEN}${BOLD} > schema:update executed successfully ${NC} \n"
 			logger 'INFO' ' > schema:update executed successfully'
 		else
-			printf "${RED}${BOLD} > Something went wrong! schema:update not executed ${NC} \n"
-			logger 'ERROR' ' > Something went wrong! schema:update not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > something went wrong! schema:update not executed ${NC} \n"
+			logger 'ERROR' ' > something went wrong! schema:update not executed' ${cmd_result// /_}
 		fi
 	else
 		printf "${BLUE}${BOLD}[skipped] schema:update not needed... ${NC} \n"
@@ -171,8 +171,8 @@ npmUpdate () {
 			printf "${GREEN}${BOLD} > npm:install executed successfully ${NC} \n"
 			logger 'INFO' ' > npm:install executed successfully'
 		else
-			printf "${RED}${BOLD} > Something went wrong! npm:install not executed ${NC} \n"
-			logger 'ERROR' ' > Something went wrong! npm:install not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > something went wrong! npm:install not executed ${NC} \n"
+			logger 'ERROR' ' > something went wrong! npm:install not executed' ${cmd_result// /_}
 		fi
 	else
 		printf "${BLUE}${BOLD}[skipped] npm:install not needed... ${NC} \n"
@@ -196,8 +196,8 @@ runGulp () {
 			printf "${GREEN}${BOLD} > gulp executed successfully ${NC} \n"
 			logger 'INFO' ' > gulp executed successfully'
 		else
-			printf "${RED}${BOLD} > Something went wrong! gulp not executed ${NC} \n"
-			logger 'ERROR' ' > Something went wrong! gulp not executed' ${cmd_result// /_}
+			printf "${RED}${BOLD} > something went wrong! gulp not executed ${NC} \n"
+			logger 'ERROR' ' > something went wrong! gulp not executed' ${cmd_result// /_}
 		fi
 	else
 		printf "${BLUE}${BOLD}[skipped] gulp not needed... ${NC} \n"
@@ -206,7 +206,10 @@ runGulp () {
 }
 
 communicate () {
-	echo 'implement your own mailsender...'
+	for recipient in "${MAIL_DEST[@]}"
+	do
+		$PHP_PATH /var/www/mercantilW2/smercantil.recurring/bin/console swiftmailer:email:send --from=emailsender@smarter.com.ve --to=${recipient} --body="<h1>${CURRENT_PROJECT}</h1> <h3>Branch: ${CURRENT_PROJECT_BRANCH}</h3> ${1//_/ } ${2//_/ }" --subject="[${SCRIPT_NAME}] - ${CURRENT_PROJECT} - ${SERVER_NAME}" 2>&1 > /dev/null
+	done
 }
 
 logger () {
@@ -291,24 +294,39 @@ for project in $@; do
 			result=`git pull 2>&1 > /dev/null`
 			PULL_STATUS=$?
 
-			composerUpdate
+			if [ -f 'docker-compose.yml' ]; then
+				logger 'INFO' "it's a docker project, restarting container..."
+		    	printf "${YELLOW}${BOLD}it's a docker project, restarting container(s)...${NC} \n"
+				result=`docker-compose restart`
 
-			if echo $NEW_CHANGES | grep -q $ENTITY_PREFIX; then
-				clearCache
+				DOCKER_STATUS=$?
+				if [[ $DOCKER_STATUS = 0 ]]; then 
+		    		printf "${GREEN}${BOLD} > container(s) restarted successfully...${NC} \n"
+				else
+		    		printf "${RED}${BOLD} something went wrong, container(s) not restarted...${NC} \n"
+					logger 'ERROR' 'something went wrong, container(s) not restarted...'
+				fi
+			else
+				composerUpdate
+
+				if echo $NEW_CHANGES | grep -q $ENTITY_PREFIX; then
+					clearCache
+				fi
+
+				schemaUpdate
+				npmUpdate
 			fi
-			schemaUpdate
-
-			npmUpdate
-
+			
 			if [[ ${#WD_CHANGES} > 0 ]]; then
 		    	printf "${YELLOW}${BOLD}bringing back stashed changes...${NC} \n"
 				logger 'INFO' 'bringing back stashed changes...'
 				result=`git stash pop 2>&1 > /dev/null`
 			fi
 
-			clearCache
-
-			runGulp
+			if [ ! -f 'docker-compose.yml' ]; then
+				clearCache
+				runGulp
+			fi
 
 			if [[ $PULL_STATUS = 0 ]]; then 
 				printf "${CYAN}${BOLD}$CURRENT_PROJECT${NC}: ${GREEN}${BOLD}successfully updated${NC} \n\n"
@@ -316,7 +334,8 @@ for project in $@; do
 				communicate 'Successfully updated'
 			else
 				printf "${RED}${BOLD} > not-updated${NC} \n\n"
-				logger 'INFO' 'not-updated...'
+				logger 'ERROR' 'not-updated...'
+				communicate "Not updated, can't pull, please take a look..."
 			fi
 
 		elif [[ $REMOTE = $BASE ]]; then
