@@ -34,7 +34,7 @@ COMPOSER_LOCATION='composer.lock'
 ENTITY_PREFIX='Entity/'
 LOG_FILE=~/.${SCRIPT_NAME}-$(date +'%d-%m-%Y').log
 MAX_LOG_FILES=5
-MAIL_DEST=(mgil@initiumsoft.com vpoeta@initiumsoft.com eacevedo@initiumsoft.com)
+MAIL_DEST=()
 SERVER_NAME=`hostname`
 INSTALLATION_PATH=/bin/
 
@@ -206,10 +206,7 @@ runGulp () {
 }
 
 communicate () {
-	for recipient in "${MAIL_DEST[@]}"
-	do
-		$PHP_PATH /var/www/mercantilW2/smercantil.recurring/bin/console swiftmailer:email:send --from=emailsender@smarter.com.ve --to=${recipient} --body="<h1>${CURRENT_PROJECT}</h1> <h3>Branch: ${CURRENT_PROJECT_BRANCH}</h3> ${1//_/ } ${2//_/ }" --subject="[${SCRIPT_NAME}] - ${CURRENT_PROJECT} - ${SERVER_NAME}" 2>&1 > /dev/null
-	done
+	# implement your own
 }
 
 logger () {
@@ -294,7 +291,19 @@ for project in $@; do
 			result=`git pull 2>&1 > /dev/null`
 			PULL_STATUS=$?
 
-			if [ -f 'docker-compose.yml' ]; then
+			if echo $NEW_CHANGES | grep -q 'docker'; then
+				logger 'INFO' "it's a docker project, building container(s)..."
+				printf "${YELLOW}${BOLD}it's a docker project, building container(s)...${NC} \n"
+				result=`docker-compose stop && docker-compose build && docker-compose up -d`
+
+				DOCKER_STATUS=$?
+				if [[ $DOCKER_STATUS = 0 ]]; then 
+		    		printf "${GREEN}${BOLD} > container(s) builded successfully...${NC} \n"
+				else
+		    		printf "${RED}${BOLD} something went wrong, container(s) not builded...${NC} \n"
+					logger 'ERROR' 'something went wrong, container(s) not builded...' ${result// /_}
+				fi
+			elif [ -f 'docker-compose.yml' ]; then
 				logger 'INFO' "it's a docker project, restarting container..."
 		    	printf "${YELLOW}${BOLD}it's a docker project, restarting container(s)...${NC} \n"
 				result=`docker-compose restart`
@@ -304,7 +313,7 @@ for project in $@; do
 		    		printf "${GREEN}${BOLD} > container(s) restarted successfully...${NC} \n"
 				else
 		    		printf "${RED}${BOLD} something went wrong, container(s) not restarted...${NC} \n"
-					logger 'ERROR' 'something went wrong, container(s) not restarted...'
+					logger 'ERROR' 'something went wrong, container(s) not restarted...' ${result// /_}
 				fi
 			else
 				composerUpdate
@@ -335,7 +344,7 @@ for project in $@; do
 			else
 				printf "${RED}${BOLD} > not-updated${NC} \n\n"
 				logger 'ERROR' 'not-updated...'
-				communicate "Not updated, can't pull, please take a look..."
+				communicate "Not updated, can't pull, please take a look..." ${result// /_}
 			fi
 
 		elif [[ $REMOTE = $BASE ]]; then
