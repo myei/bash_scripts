@@ -9,7 +9,7 @@
 # 		- Permite la actualización de múltiples aplicaciones manejadas por Git
 # 			- Se permiten rutas relativas o absolutas
 #		- Manejo de errores
-#		- Implementa archivos de Logs diarios para revisión post-ejecución
+#		- Implementa archivos de Logs diarios (ubicados en: ~/.${SCRIPT_NAME}/)
 #		- Auto limpieza de logs, parametrizable por días
 #		- Comunicación vía email de errores y despliegues exitosos
 #		- Automatizaciones inteligentes de symfony y git
@@ -18,25 +18,33 @@
 #			- Actualizacion de Base de Datos
 #			- Previene conflictos con cambios locales
 #			- Gulp implementado
+#		- Integración con Docker
+#			- docker-compose.yml en la raiz del proyecto
+#			- Permite la utilización de pipelines personalizados en archivos ubicados en:
+#				~/.${SCRIPT_NAME}/pipelines/<basename project_path>.sh
 # 		- Permite auto instalación (-i --install)
 # 	
 #
-# 																		v2.5
+# 																		v2.6
 ##############################################################################
 
 # C O N F I G U R A T I O N
-SCRIPT_NAME='auto-deployment'
-PROJECT_USER='apache'
-PROJECT_GROUP='apache'
-PHP_PATH=php
-COMPOSER_PATH=/usr/local/bin/composer
-COMPOSER_LOCATION='composer.lock'
-ENTITY_PREFIX='Entity/'
-LOG_FILE=~/.${SCRIPT_NAME}-$(date +'%d-%m-%Y').log
+SCRIPT_NAME=auto-deployment
+SCRIPT_PATH=~/.${SCRIPT_NAME}
+LOG_FILE=${SCRIPT_PATH}/trace-$(date +'%d-%m-%Y').log
 MAX_LOG_FILES=5
 MAIL_DEST=()
 SERVER_NAME=`hostname`
 INSTALLATION_PATH=/bin/
+IS_PIPELINE_RUNNER=1			# 1/0
+PIPELINE_PATH=${SCRIPT_PATH}/pipelines	# required if IS_PIPELINE_RUNNER=1
+
+PROJECT_USER=apache
+PROJECT_GROUP=apache
+PHP_PATH=php
+COMPOSER_PATH=/usr/local/bin/composer
+COMPOSER_LOCATION=composer.lock
+ENTITY_PREFIX=Entity/
 
 # C O L O R S
 GREEN='\033[0;32m'
@@ -52,6 +60,8 @@ I='\e[3m'
 # F O N T S
 BOLD='\e[1m'
 
+[ ! -d $SCRIPT_PATH ] && mkdir -p $SCRIPT_PATH
+[ ! -d $PIPELINE_PATH ] && mkdir -p $PIPELINE_PATH
 [ ! -f $LOG_FILE ] && touch $LOG_FILE
 
 if [[ $# -eq 0 ]]; then
@@ -205,6 +215,21 @@ runGulp () {
 	fi
 }
 
+runPipeline () {
+	PIPELINE_PATH=`realpath $PIPELINE_PATH`
+	if [[ $IS_PIPELINE_RUNNER = 1 && -f $PIPELINE_PATH/$CURRENT_PROJECT.sh ]]; then
+		printf "${YELLOW}${BOLD}Pipeline detected...${NC} \n"
+
+		source $PIPELINE_PATH/$CURRENT_PROJECT.sh
+		if [[ $? = 0 ]]; then 
+			printf "${GREEN}${BOLD} > Pipeline executed successfully${NC} \n"
+		else
+			printf "${RED}${BOLD} > Something wrong executing pipeline${NC} \n"
+			logger 'ERROR' "Something wrong executing pipeline"
+		fi
+	fi
+}
+
 communicate () {
 	# implement your own
 }
@@ -291,7 +316,14 @@ for project in $@; do
 			result=`git pull 2>&1 > /dev/null`
 			PULL_STATUS=$?
 
+			if [[ $PULL_STATUS -ne 0 ]]; then 
+				printf "${RED}${BOLD}can't pull...${NC} \n"
+				exit 1;
+			fi
+
 			if echo $NEW_CHANGES | grep -q 'docker'; then
+				runPipeline
+
 				logger 'INFO' "it's a docker project, building container(s)..."
 				printf "${YELLOW}${BOLD}it's a docker project, building container(s)...${NC} \n"
 				result=`docker-compose stop && docker-compose build && docker-compose up -d`
@@ -304,6 +336,8 @@ for project in $@; do
 					logger 'ERROR' 'something went wrong, container(s) not builded...' ${result// /_}
 				fi
 			elif [ -f 'docker-compose.yml' ]; then
+				runPipeline
+
 				logger 'INFO' "it's a docker project, restarting container..."
 		    	printf "${YELLOW}${BOLD}it's a docker project, restarting container(s)...${NC} \n"
 				result=`docker-compose restart`
