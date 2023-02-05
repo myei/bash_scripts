@@ -13,7 +13,7 @@ SSH_KEY_FILE_NAME=
 # Config files
 #########################################################
 
-echo -e "Setting: Do not ask for passwork to sudo"
+echo -e "Setting: Do not ask for password to sudo"
 echo "${USER}    ALL=NOPASSWD: ALL" >> /etc/sudoers # do not ask password to sudo
 
 
