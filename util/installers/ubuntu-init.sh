@@ -55,6 +55,7 @@ echo -e "Installing apt packages..."
 apt install curl git zsh openssh-server terminator google-chrome-stable unrar htop discus flat-remix-gtk flat-remix flat-remix-gnome neofetch \
     gnome-tweaks gnome-shell-extension-prefs gnome-shell-extension-manager \
     symfony-cli insomnia mysql-server nodejs npm apache2 php php-cli php-zip php-dom php-xml php-gd php-mysql microsoft-edge-stable docker docker-compose python3-pip \
+    gromit-mpx
     
 echo -e "Installing snap packages"
 snap install code gitkraken skype --classic

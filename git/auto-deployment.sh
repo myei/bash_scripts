@@ -44,6 +44,7 @@ PROJECT_GROUP=apache
 PHP_PATH=php
 COMPOSER_PATH=/usr/local/bin/composer
 COMPOSER_LOCATION=composer.lock
+QA_NOTIFIER=/opt/QaNotifier/QaNotification.dll
 ENTITY_PREFIX=Entity/
 
 # C O L O R S
@@ -192,8 +193,24 @@ npmUpdate () {
 
 runGulp () {
 	GULP_FILE='gulpfile-prod.js'
-	if echo `ls ${PUBLIC_DIR}` | grep -q $GULP_FILE || echo $NEW_CHANGES | grep -q $GULP_FILE; then
+	GULP_WRAPPER='gulpfile-wrapper.js'
+	cd $CURRENT_PROJECT
 
+	if echo `ls` | grep -q $GULP_WRAPPER || echo $NEW_CHANGES | grep -q $GULP_WRAPPER; then
+		printf "${YELLOW}${BOLD}running gulp ${NC} \n"
+		logger 'INFO' 'running gulp'
+
+		cmd_result=`/bin/node ${GULP_WRAPPER} 2>&1 > /dev/null`
+		wasSuccessful=$?
+
+		if [ $wasSuccessful -eq 0 ]; then
+			printf "${GREEN}${BOLD} > gulp executed successfully ${NC} \n"
+			logger 'INFO' ' > gulp executed successfully'
+		else
+			printf "${RED}${BOLD} > something went wrong! gulp not executed ${NC} \n"
+			logger 'ERROR' ' > something went wrong! gulp not executed' ${cmd_result// /_}
+		fi
+	elif echo `ls ${PUBLIC_DIR}` | grep -q $GULP_FILE || echo $NEW_CHANGES | grep -q $GULP_FILE; then
 		printf "${YELLOW}${BOLD}running gulp ${NC} \n"
 		logger 'INFO' 'running gulp'
 		
@@ -369,12 +386,14 @@ for project in $@; do
 			if [ ! -f 'docker-compose.yml' ]; then
 				clearCache
 				runGulp
+				clearCache
 			fi
 
 			if [[ $PULL_STATUS = 0 ]]; then 
 				printf "${CYAN}${BOLD}$CURRENT_PROJECT${NC}: ${GREEN}${BOLD}successfully updated${NC} \n\n"
 				logger 'INFO' 'updated...'
 				communicate 'Successfully updated'
+				dotnet $QA_NOTIFIER $CURRENT_PROJECT $CURRENT_PROJECT_PATH
 			else
 				printf "${RED}${BOLD} > not-updated${NC} \n\n"
 				logger 'ERROR' 'not-updated...'
