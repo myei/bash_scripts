@@ -300,9 +300,9 @@ for project in $@; do
 		cmd_result=`git remote update 2>&1 > /dev/null`
 
 		if [ $? -gt 0 ]; then
-			printf "${RED}${BOLD} > error, aborting... ${NC} \n"
+			printf "${RED}${BOLD} > error, aborting... ${NC} \n\n"
 			#logger 'ERROR' ' > error fetching remotes, aborting...' ${cmd_result// /_}
-			exit 1
+			continue
 		fi
 
 		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
@@ -334,8 +334,8 @@ for project in $@; do
 			PULL_STATUS=$?
 
 			if [[ $PULL_STATUS -ne 0 ]]; then 
-				printf "${RED}${BOLD}can't pull...${NC} \n"
-				exit 1;
+				printf "${RED}${BOLD}can't pull...${NC} \n\n"
+				continue
 			fi
 
 			if echo $NEW_CHANGES | grep -q 'docker'; then
